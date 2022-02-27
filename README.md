@@ -5,7 +5,7 @@
 - [coolpattern1.eps](coolpattern1.eps)
 - [coolrainbow.eps](coolrainbow.eps)
 - [image.eps](image.eps)
-- [nbodyproblem.eps](nbodyproblem.eps)
+- [nbodyproblem.eps](nbodyproblem.eps) (not uploaded to github because it's too big)
 
 ### WIP:
 
