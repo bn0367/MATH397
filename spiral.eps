@@ -1,0 +1,64 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox: 0 0 500 500
+
+/SIZE 500 def
+
+1 setlinejoin
+1 setlinecap
+1 setlinewidth
+
+/a 0.002 def % controls length of the spiral (higher number = shorter spiral)
+/b 0.02 def % controls distance between turns
+/e 2.71828 def
+/pi 3.14159 def
+/length 100 a div def
+
+% image token show
+
+% function to draw bounding box (for debugging)
+/box {
+	newpath
+	0 0 moveto
+	SIZE 0 lineto
+	SIZE SIZE lineto
+	0 SIZE lineto
+	closepath
+	stroke
+} def
+box
+
+SIZE 2 div SIZE 2 div translate % put spiral in center of canvas
+
+
+% logarithmic spiral -- algorithm from https://mathworld.wolfram.com/LogarithmicSpiral.html
+% using old x + old y so that I can change the line width at any given point
+% that's also why each line segment is its own path, because stroke will just use the latest linewidth for the whole thing
+/oX 0 def
+/oY 0 def
+/x 0 def
+/y 0 def
+0 0 moveto
+1 1 length {
+	newpath
+	/i exch def
+	/oX x def
+	/oY y def
+	% logarithmic spiral
+	/x i cos a mul b i mul e exp mul def
+	/y i sin a mul b i mul e exp mul def
+	% archimedean spiral
+	% /x i cos a mul b i mul e exp mul def
+	% /y i sin a mul b i mul e exp mul def
+	oX oY moveto
+	x y lineto
+	closepath
+	% increase line width as we go, increasing faster and faster as we get further out
+	% i 2 exp length 2 exp div 15 mul setlinewidth
+	% setting HSV color (abs to actually have the color show up on the whole spiral)
+	% i sin abs 0.0 i cos abs sethsbcolor
+	stroke
+} for
+
+
+showpage
+%EOF
