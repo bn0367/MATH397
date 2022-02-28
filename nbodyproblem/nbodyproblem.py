@@ -11,22 +11,31 @@ iterations = 1000000
 delta = 0.0001
 G = 9.8
 
-colors = [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0), (1.0, 0.0, 1.0)]
+colors = [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0), (1.0, 0.0, 1.0), (1.0, 0.9, 0.0)]
 
-# masses
-masses = [10, 20, 30, 40]
+masses = [
+    10,
+    20,
+    30,
+    40,
+    20
+]
 
-# start positions
-position_starts = [np.array(
-    [10., 10.]), np.array(
-    [0., 0.]), np.array(
-    [10., -10.]), np.array([-10., 10.])]
+position_starts = [
+    np.array([10., 10.]),
+    np.array([0., 0.]),
+    np.array([10., -10.]),
+    np.array([-10., 10.]),
+    np.array([-10., -10.]),
+]
 
-# start velocities
-velocity_starts = [np.array(
-    [0., 0.]), np.array(
-    [0., 0.]), np.array(
-    [0., 0.]), np.array([0., 0.])]
+velocity_starts = [
+    np.array([0., 0.]),
+    np.array([0., 0.]),
+    np.array([0., 0.]),
+    np.array([0., 0.]),
+    np.array([0., 0.])
+]
 
 
 # calculates derivatives (accelerations) of the 3 bodies
@@ -89,5 +98,5 @@ for i in tqdm(range(iterations - 1)):
         os.system("del nbodyproblem%d.eps" % ((i - 500) / 1000))
 
 # frames to gif
-os.system("ffmpeg -f image2 -framerate 15 -i frame%03d.png -y output.gif")
+os.system("ffmpeg -f image2 -framerate 15 -i frame%03d.png -y output-5-bodies.gif")
 os.system("del *.png")
