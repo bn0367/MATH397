@@ -1,45 +1,28 @@
 import math
-import random
 import numpy as np
 from eps import Eps
 from tqdm import tqdm  # progress bar
-import subprocess
+import subprocess  # cmd calls
+import os  # for deleting files
 
 # algorithm adapted from https://blbadger.github.io/3-body-problem.html
 # changed to be 2d, extended to be n-bodies
 
-iterations = 1000000
+iterations = 200000
 delta = 0.0001
 G = 9.8
 
-colors = [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0), (1.0, 0.0, 1.0), (1.0, 1.0, 0.0)]
-
-masses = [
-    10,
-    20,
-    30,
-    40,
-    20
-]
-
-position_starts = [
-    np.array([10., 10.]),
-    np.array([0., 0.]),
-    np.array([10., -10.]),
-    np.array([-10., 10.]),
-    np.array([-10., -10.]),
-]
-
-velocity_starts = [
-    np.array([0., 0.]),
-    np.array([0., 0.]),
-    np.array([0., 0.]),
-    np.array([0., 0.]),
-    np.array([0., 0.])
+# (r, g, b), mass, [x, y], [vx, vy]
+bodies = [
+    ((1.0, 0.0, 0.0), 10, np.array([10.0, 10.0]), np.array([0., 0.])),
+    ((0.0, 1.0, 0.0), 20, np.array([0.00, 0.00]), np.array([0., 0.])),
+    ((0.0, 0.0, 1.0), 30, np.array([10.0, -10.]), np.array([0., 0.])),
+    ((1.0, 0.0, 1.0), 40, np.array([-10., 10.0]), np.array([0., 0.])),
+    ((1.0, 1.0, 0.0), 20, np.array([-10., -10.]), np.array([0., 0.])),
 ]
 
 
-# calculates derivatives (accelerations) of the 3 bodies
+# calculates derivatives (accelerations) of the bodies
 def accelerations(p, m):
     acc = []
     for i in range(len(p)):
@@ -52,21 +35,21 @@ def accelerations(p, m):
 
 
 # create arrays for the positions and velocities
-positions = [[np.array([0., 0.]) for _ in range(iterations)] for _ in range(len(masses))]
-velocities = [[np.array([0., 0.]) for _ in range(iterations)] for _ in range(len(masses))]
+positions = [[np.array([0., 0.]) for _ in range(iterations)] for _ in range(len(bodies))]
+velocities = [[np.array([0., 0.]) for _ in range(iterations)] for _ in range(len(bodies))]
 
 # set initial values
-for i in range(len(masses)):
-    positions[i][0] = position_starts[i]
-    velocities[i][0] = velocity_starts[i]
+for i in range(len(bodies)):
+    positions[i][0] = bodies[i][2]
+    velocities[i][0] = bodies[i][2]
 
 for i in tqdm(range(iterations - 1)):
-    dvs = accelerations([x[i] for x in positions], masses)
+    dvs = accelerations([x[i] for x in positions], [x[1] for x in bodies])
 
-    for m in range(len(masses)):
+    for m in range(len(bodies)):
         velocities[m][i + 1] = velocities[m][i] + dvs[m] * delta
 
-    for m in range(len(masses)):
+    for m in range(len(bodies)):
         positions[m][i + 1] = positions[m][i] + velocities[m][i] * delta
 
     if (i - 500) % 1000 == 0 and i > 0:
@@ -82,11 +65,11 @@ for i in tqdm(range(iterations - 1)):
 
         # use old points to make frame transition smoother
         for k in range(i - 500, i + 499):
-            for j in range(len(masses)):
+            for j in range(len(bodies)):
                 if all(positions[j][k]) and all(positions[j][k + 1]):
                     eps.add("%f %f moveto" % (positions[j][k][0], positions[j][k][1]))
                     eps.add("%f %f lineto" % (positions[j][k + 1][0], positions[j][k + 1][1]))
-                    eps.add("{} {} {} setrgbcolor".format(*colors[j]))
+                    eps.add("{} {} {} setrgbcolor".format(*bodies[j][0]))
                     eps.add("stroke")
 
         eps.add("closepath")
@@ -104,5 +87,5 @@ subprocess.Popen(
     ["ffmpeg", "-f", "image2", "-framerate", "15", "-i", "frame%03d.png", "-y", "output-5-bodies.gif"]).wait()
 
 # cleanup
-subprocess.Popen(["del", "*.png"]).wait()
-subprocess.Popen(["del", "*.eps"]).wait()
+os.system("del *.eps")
+os.system("del *.png")
