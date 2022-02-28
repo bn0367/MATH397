@@ -1,8 +1,9 @@
+import math
 import random
 import numpy as np
 from eps import Eps
 from tqdm import tqdm  # progress bar
-import os
+import subprocess
 
 # algorithm adapted from https://blbadger.github.io/3-body-problem.html
 # changed to be 2d, extended to be n-bodies
@@ -11,7 +12,7 @@ iterations = 1000000
 delta = 0.0001
 G = 9.8
 
-colors = [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0), (1.0, 0.0, 1.0), (1.0, 0.9, 0.0)]
+colors = [(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0), (1.0, 0.0, 1.0), (1.0, 1.0, 0.0)]
 
 masses = [
     10,
@@ -42,8 +43,10 @@ velocity_starts = [
 def accelerations(p, m):
     acc = []
     for i in range(len(p)):
-        dv = sum(-G * m[x] * (p[i] - p[x])
-                 / (np.sqrt((p[i][0] - p[x][0]) ** 2 + (p[i][1] - p[x][1]) ** 2) ** 2) for x in range(len(p)) if x != i)
+        dv = 0
+        for j in range(len(p)):
+            if i != j:
+                dv += -G * m[j] * (p[i] - p[j]) / (math.sqrt((p[i][0] - p[j][0]) ** 2 + (p[i][1] - p[j][1]) ** 2) ** 2)
         acc.append(dv)
     return acc
 
@@ -92,11 +95,14 @@ for i in tqdm(range(iterations - 1)):
         eps.write()
 
         # .eps to png
-        os.system(
-            "gswin64c -g500x500 -q -dNOPAUSE -dBATCH -sDEVICE=png256 -sOutputFile=frame%03d.png nbodyproblem%d.eps" % (
-                ((i - 500) / 1000), ((i - 500) / 1000)))
-        os.system("del nbodyproblem%d.eps" % ((i - 500) / 1000))
+        subprocess.Popen(["gswin64c", "-g500x500", "-q", "-dNOPAUSE", "-dBATCH", "-sDEVICE=png16m",
+                          "-sOutputFile=frame%03d.png" % ((i - 500) / 1000),
+                          "nbodyproblem%d.eps" % ((i - 500) / 1000)])
 
 # frames to gif
-os.system("ffmpeg -f image2 -framerate 15 -i frame%03d.png -y output-5-bodies.gif")
-os.system("del *.png")
+subprocess.Popen(
+    ["ffmpeg", "-f", "image2", "-framerate", "15", "-i", "frame%03d.png", "-y", "output-5-bodies.gif"]).wait()
+
+# cleanup
+subprocess.Popen(["del", "*.png"]).wait()
+subprocess.Popen(["del", "*.eps"]).wait()
