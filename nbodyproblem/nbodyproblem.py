@@ -7,7 +7,7 @@ import os
 # algorithm adapted from https://blbadger.github.io/3-body-problem.html
 # changed to be 2d, extended to be n-bodies
 
-iterations = 200000
+iterations = 1000000
 delta = 0.0001
 G = 9.8
 
