@@ -6,7 +6,7 @@
 - [coolrainbow.eps](coolrainbow.eps)
 - [image.eps](image.eps)
 - N Body Problem!  
--  ![3 Body Problem](nbodyproblem/output.gif)
+-  ![3 Body Problem](nbodyproblem/output-5-bodies.gif)
 
 ### WIP:
 
