@@ -11,6 +11,7 @@ import os  # for deleting files
 iterations = 2000000
 delta = 0.0001
 G = 9.8
+trail_length = 10000
 
 # (r, g, b), mass, [x, y], [vx, vy]
 bodies = [
@@ -64,13 +65,15 @@ for i in trange(iterations - 1):
         eps.add("%f %f scale" % (5, 5))
 
         # use old points to make frame transition smoother
-        for k in range(i - 500, i + 499):
-            for j in range(len(bodies)):
+        start = i - trail_length if i > trail_length else 1
+        for j in range(len(bodies)):
+            for k in range(start, i + 499):
                 if all(positions[j][k]) and all(positions[j][k + 1]):
                     eps.add("%f %f moveto" % (positions[j][k][0], positions[j][k][1]))
                     eps.add("%f %f lineto" % (positions[j][k + 1][0], positions[j][k + 1][1]))
                     eps.add("{} {} {} setrgbcolor".format(*bodies[j][0]))
                     eps.add("stroke")
+            eps.add("%f %f 0.25 0 360 arc fill" % (positions[j][i][0], positions[j][i][1]))
 
         eps.add("closepath")
         eps.add("showpage")
