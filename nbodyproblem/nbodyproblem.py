@@ -1,7 +1,7 @@
 import math
 import numpy as np
 from eps import Eps
-from tqdm import tqdm  # progress bar
+from tqdm import trange  # progress bar
 import subprocess  # cmd calls
 import os  # for deleting files
 
@@ -14,11 +14,11 @@ G = 9.8
 
 # (r, g, b), mass, [x, y], [vx, vy]
 bodies = [
-    ((1.0, 0.0, 0.0), 10, np.array([10.0, 10.0]), np.array([0., 0.])),
-    ((0.0, 1.0, 0.0), 20, np.array([0.00, 0.00]), np.array([0., 0.])),
-    ((0.0, 0.0, 1.0), 30, np.array([10.0, -10.]), np.array([0., 0.])),
-    ((1.0, 0.0, 1.0), 40, np.array([-10., 10.0]), np.array([0., 0.])),
-    ((1.0, 1.0, 0.0), 20, np.array([-10., -10.]), np.array([0., 0.])),
+    ((1.0, 0.0, 0.0), 22, np.array([10.0, 10.0]), np.array([0., 0.])),
+    ((0.0, 1.0, 0.0), 21, np.array([0.00, 0.00]), np.array([0., 0.])),
+    ((0.0, 0.0, 1.0), 20, np.array([10.0, -10.]), np.array([0., 0.])),
+    ((1.0, 0.0, 1.0), 21, np.array([-10., 10.0]), np.array([0., 0.])),
+    ((1.0, 1.0, 0.0), 22, np.array([-10., -10.]), np.array([0., 0.])),
 ]
 
 
@@ -43,7 +43,7 @@ for i in range(len(bodies)):
     positions[i][0] = bodies[i][2]
     velocities[i][0] = bodies[i][2]
 
-for i in tqdm(range(iterations - 1)):
+for i in trange(iterations - 1):
     dvs = accelerations([x[i] for x in positions], [x[1] for x in bodies])
 
     for m in range(len(bodies)):

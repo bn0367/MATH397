@@ -6,15 +6,17 @@ class Eps:
         self.linecap = linecap
         self.linewidth = linewidth
         self.file = open("%s.eps" % name, "w")
-        self.lines = ["%!PS-Adobe-3.0 EPSF-3.0", "%%BoundingBox: 0 0 %d %d" % (size, size),
-                      "%d setlinejoin" % self.linejoin,
-                      "%d setlinecap" % self.linecap,
-                      "%d setlinewidth" % self.linewidth]
+        self.lines = [
+            "%!PS-Adobe-3.0 EPSF-3.0\n",
+            "%%BoundingBox: 0 0 %d %d\n" % (size, size),
+            "%d setlinejoin\n" % self.linejoin,
+            "%d setlinecap\n" % self.linecap,
+            "%d setlinewidth\n" % self.linewidth
+        ]
 
     def add(self, line):
-        self.lines.append(line)
+        self.lines.append(line + "\n")
 
     def write(self):
-        for line in self.lines:
-            self.file.write(line + "\n")
+        self.file.writelines(self.lines)
         self.file.close()
