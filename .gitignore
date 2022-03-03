@@ -1,3 +1,5 @@
 .idea/
 __pycache__/
-nbodyproblem/*.png
+.vs/
+nbodyproblem/frames/*.png
+nbodyproblem/frames/*.eps

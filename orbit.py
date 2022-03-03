@@ -30,7 +30,7 @@ planets = {
 
 # meant to be an infinite series, but i can't really do that
 def z(i, B):
-    return planet[1] * B ** i * sum(((-B ** 2 * (1 - planet[1])) ** n / math.factorial(2 * n + i)) for n in range(10))
+    return planet[1] * B ** i * sum(((-B ** 2 * (1 - planet[1])) ** n / math.factorial(2 * n + i)) for n in range(30))
 
 
 def phi(B, r):
@@ -53,5 +53,5 @@ for i in range(iterations):
             v = 2 * math.atan(B0 / math.sqrt(2))
         else:
             while correction(B, r) > tolerance:
-                B = B + correction(B0, r)
+                B = B + correction(B, r)
             print(B)

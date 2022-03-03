@@ -9,9 +9,7 @@ class Eps:
         self.lines = [
             "%!PS-Adobe-3.0 EPSF-3.0\n",
             "%%BoundingBox: 0 0 %d %d\n" % (size, size),
-            "%d setlinejoin\n" % self.linejoin,
-            "%d setlinecap\n" % self.linecap,
-            "%d setlinewidth\n" % self.linewidth
+            "%d setlinejoin %d setlinewidth %d setlinecap " % (self.linejoin, self.linewidth, self.linecap),
         ]
 
     def add(self, line):
