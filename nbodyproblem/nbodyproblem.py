@@ -9,7 +9,7 @@ import csv  # read input file
 # changed to be 2d, extended to be n-bodies
 
 if len(sys.argv) != 6:
-    print("Usage: nbodyproblem.py <iterations> <timestep> <trail_length> <input_file> <output_file>")
+    print("Usage: nbodyproblem   <iterations> <timestep> <trail_length> <input_file> <output_file>")
     exit(1)
 
 # (r, g, b), mass, [x, y], [vx, vy]
@@ -26,17 +26,17 @@ iterations = int(sys.argv[1])
 delta = float(sys.argv[2])
 G = 9.8
 trail_length = int(sys.argv[3])
-size = 500
+size = 1000
 
 
-# calculates derivatives (accelerations) of the bodies
+# calculates accelerations of the bodies
 def accelerations(p, m):
     acc = []
     for i in range(len(p)):
         dv = [0., 0.]
         for j in range(len(p)):
             if i != j:
-                top = [(p[i][0] - p[j][0]) * -G * m[j], (p[i][1] - p[j][1]) * -G * m[j]]
+                top = [(p[i][0] - p[j][0]) * -G * m[j] * m[i], (p[i][1] - p[j][1]) * -G * m[j] * m[i]]
                 bottom = math.sqrt(((p[i][0] - p[j][0]) ** 2) + ((p[i][1] - p[j][1]) ** 2)) ** 2
                 dv[0] += top[0] / bottom
                 dv[1] += top[1] / bottom
@@ -56,7 +56,7 @@ for i in range(len(bodies)):
     positions[i][0] = bodies[i][2]
     velocities[i][0] = bodies[i][2]
 
-print("Rendering frames...")
+print("Rendering frames... ", end="")
 
 for i in trange(iterations - 1):
     dvs = accelerations([x[i] for x in positions], [x[1] for x in bodies])
@@ -72,26 +72,32 @@ for i in trange(iterations - 1):
     if (i - 500) % 1000 == 0 and i > 0:
         lines = [
             "%%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 %d %d\n%d setlinejoin %d setlinewidth %d setlinecap 0.0 "
-            "0.0 0.0 setrgbcolor newpath 0 0 moveto 0 500 lineto 500 500 lineto 500 0 lineto closepath fill %d %d "
-            "translate %d %d scale " % (size, size, 1, 0.05, 1, 250, 250, 5, 5)]
+            "0.0 0.0 setrgbcolor newpath 0 0 moveto 0 %d lineto %d %d lineto %d 0 lineto closepath fill %d %d "
+            "translate %d %d scale " % (
+                size, size, 1, 1, 1, size, size, size, size, -positions[0][i][0] + size // 2,
+                -positions[0][i][1] + size // 2, 1, 1)]
 
         # use old points to make frame transition smoother
         start = i - trail_length if i > trail_length else 1
         for j in range(len(bodies)):
             lines.append("%.1f %.1f %.1f setrgbcolor %.3f %.3f moveto\n" % (
                 bodies[j][0][0], bodies[j][0][1], bodies[j][0][2], positions[j][start][0], positions[j][start][1]))
-            for k in range(start + 1, i + 499, 5):
-                if positions[j][k][0] != 0 and positions[j][k][1] != 0 and \
+            for k in range(start + 1, i + 499, 25):
+                width = ((k - start) / ((i + 499) - (start - 1))) * (bodies[j][1] / 30)
+                if width > 1 and positions[j][k][0] != 0 and positions[j][k][1] != 0 and \
                         positions[j][k + 1][0] != 0 and positions[j][k + 1][1] != 0:
-                    lines.append("%.3f %.3f lineto " % (positions[j][k + 1][0], positions[j][k + 1][1]))
-            lines.append("\n%.3f %.3f 0.25 0 360 arc stroke " % (positions[j][i][0], positions[j][i][1]))
+                    lines.append("newpath %.3f setlinewidth %.3f %.3f moveto %.3f %.3f lineto stroke " % (
+                        width, positions[j][k][0], positions[j][k][1], positions[j][k + 1][0], positions[j][k + 1][1]))
+            lines.append(
+                " \n%.3f %.3f %.3f 0 360 arc fill " % (
+                    positions[j][i][0], positions[j][i][1], bodies[j][1] / 30))
 
         lines.append("showpage\n%EOF")
         with open("frames/nbodyproblem%d.eps" % ((i - 500) / 1000), "w") as f:
             f.writelines(lines)
 
         # .eps to png
-        subprocess.Popen(["gswin64c", "-g500x500", "-q", "-dNOPAUSE", "-dBATCH", "-sDEVICE=png16m",
+        subprocess.Popen(["gswin64c", "-g%dx%d" % (size, size), "-q", "-dNOPAUSE", "-dBATCH", "-sDEVICE=png16m",
                           "-sOutputFile=frame%03d.png" % ((i - 500) / 1000),
                           "nbodyproblem%d.eps" % ((i - 500) / 1000)], cwd="frames/")
 

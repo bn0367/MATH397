@@ -16,14 +16,14 @@ img = Image.open("image.jpg")
 SIZE = 500
 
 eps = Eps("image", SIZE)
-eps.add("%d %d translate" % (SIZE // 2, SIZE // 2))
-eps.add("150 rotate")
+eps.add("%d %d translate\n" % (SIZE // 2, SIZE // 2))
+eps.add("150 rotate\n")
 
 a, b = 0.2, 0.3
 x, y = 0, 0
 oX, oY = 0, 0
 i = 0
-eps.add("newpath")
+eps.add("newpath\n")
 while SIZE // 2 > x > -SIZE // 2:
     oX, oY = x, y
     x = (a + (b * i)) * math.cos(i)
@@ -34,7 +34,7 @@ while SIZE // 2 > x > -SIZE // 2:
         oY + SIZE // 2 + 1)  # convert(, SIZE, SIZE, img.width, img.height)
     noX, noY = math.floor(500 - (oX + SIZE // 2 + 1)), math.floor(oY + SIZE // 2 + 1)
     # get the midpoint of the line for more accurate (?) colors
-    rX, rY = (nX + noX) / 2, (nY + noY) / 2
+    rX, rY = (nX + noX) // 2, (nY + noY) // 2
     try:
         pixel = img.getpixel((rX, rY))
         brightness = math.sqrt(0.299 * pixel[0] ** 2 + 0.587 * pixel[1] ** 2 + 0.114 * pixel[2] ** 2)
@@ -47,8 +47,5 @@ while SIZE // 2 > x > -SIZE // 2:
     i += 1
 
 print(i)
-eps.add("fill")
-eps.add("closepath")
-eps.add("showpage")
-eps.add("%EOF")
+eps.add("fill\nclosepath\nshowpage\n%EOF")
 eps.write()
