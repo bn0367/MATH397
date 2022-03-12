@@ -24,3 +24,4 @@
 - 2022-03-01: Made nbodyproblem look cooler
 - 2022-03-02: More work on nbodyproblem
 - 2022-03-03: Lots of optimization on nbodyproblem (10x faster)
+- 2022-03-04 through 2022-03-11: Thinking of midterm ideas [notes](midterm/midterm_notes), nbodyproblem optimization, start of work on midterm

@@ -1,5 +1,5 @@
 import math
-from tqdm import trange  # progress bar
+# from tqdm import trange  # progress bar
 import subprocess  # cmd calls
 from subprocess import DEVNULL  # suppress ffmpeg
 import sys  # arguments
@@ -45,6 +45,7 @@ def accelerations(p, m):
 
 
 # create arrays for the positions and velocities
+# TODO: use less memory here, no need to store all of the positions+velocities (i don't think?)
 print("Initializing positions... ", end="")
 positions = [[[0., 0.] for _ in range(iterations)] for _ in range(len(bodies))]
 print("Done")
@@ -58,7 +59,7 @@ for i in range(len(bodies)):
 
 print("Rendering frames... ", end="")
 
-for i in trange(iterations - 1):
+for i in range(iterations - 1):
     dvs = accelerations([x[i] for x in positions], [x[1] for x in bodies])
 
     for m in range(len(bodies)):
@@ -70,6 +71,7 @@ for i in trange(iterations - 1):
         positions[m][i + 1][1] = positions[m][i][1] + velocities[m][i][1] * delta
 
     if (i - 500) % 1000 == 0 and i > 0:
+        # if the camera should "follow" one of the bodies, subtract positions[0][i] from the transform (size // 2)
         lines = [
             "%%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 %d %d\n%d setlinejoin %d setlinewidth %d setlinecap 0.0 "
             "0.0 0.0 setrgbcolor newpath 0 0 moveto 0 %d lineto %d %d lineto %d 0 lineto closepath fill %d %d "
@@ -82,6 +84,7 @@ for i in trange(iterations - 1):
         for j in range(len(bodies)):
             lines.append("%.1f %.1f %.1f setrgbcolor %.3f %.3f moveto\n" % (
                 bodies[j][0][0], bodies[j][0][1], bodies[j][0][2], positions[j][start][0], positions[j][start][1]))
+            # TODO: determine what the highest the step can be before there are holes in the trail
             for k in range(start + 1, i + 499, 25):
                 width = ((k - start) / ((i + 499) - (start - 1))) * (bodies[j][1] / 30)
                 if width > 1 and positions[j][k][0] != 0 and positions[j][k][1] != 0 and \

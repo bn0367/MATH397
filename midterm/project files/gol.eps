@@ -1,0 +1,113 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox: 0 0 2000 2000
+
+% conway's game of life
+
+% array copy: arr [exch aload pop]
+
+realtime srand
+
+/size 1000 def
+/cycles 100 def
+
+
+/gridsize 500 def
+/cellsize size gridsize div def
+cellsize 100 div setlinewidth
+
+/Consolas findfont
+20.0 scalefont
+setfont
+
+/old [gridsize gridsize mul {rand 2 mod} repeat] def
+/current old [exch aload pop] def % [gridsize gridsize mul {0} repeat] def
+/heatmap [gridsize gridsize mul {0} repeat] def
+
+/log {pstack pop} def
+
+/getneighbors {
+	1 dict begin
+	/i exch def
+	end
+	/neighbors [
+		i 1 gridsize add sub i gridsize sub i 1 gridsize sub sub
+		i 1 sub                             i 1 add
+		i 1 gridsize add add i gridsize add i 1 gridsize sub add
+	] def
+	/l 0 def
+	0 1 7 {
+		/j exch def
+		/c neighbors j get gridsize gridsize mul mod abs def
+		/valid c 0 gt c gridsize gridsize mul lt and def
+		valid {
+			old c get 1 eq {/l l 1 add def} if
+		} if
+	} for
+	l
+} def
+
+/live {
+	1 dict begin
+	/i exch def end
+	/l i getneighbors def
+
+	/x i gridsize mod cellsize mul def
+	/y i gridsize idiv cellsize mul def
+	l 2 ne l 3 ne and {current i 0 put} {current i 1 put heatmap i heatmap i get 1 add put} ifelse
+} def
+
+/dead {
+	1 dict begin
+	/i exch def	end
+	
+	/l i getneighbors def
+
+	/x i gridsize mod cellsize mul def
+	/y i gridsize idiv cellsize mul def
+	l 3 eq l 6 eq or {current i 1 put heatmap i heatmap i get 1 add put} {current i 0 put} ifelse
+} def
+
+/cell {
+	3 dict begin
+	/state exch def
+	/y exch def
+	/x exch def
+	state 1 eq 
+	{ 
+		x y cellsize cellsize rectfill
+	}
+	{
+		newpath
+		x y moveto
+		x cellsize add y lineto
+		x cellsize add y cellsize add lineto
+		x y cellsize add lineto
+		closepath stroke
+	} ifelse
+	end
+} def
+cycles {
+	%0 1 gridsize 2 exp 1 sub {
+	%	/i exch def
+	%	/x i gridsize mod cellsize mul def
+	%	/y i gridsize idiv cellsize mul def
+	%	x y current i get cell
+	%} for
+	0 1 gridsize 2 exp 1 sub {
+		/i exch def
+		% recalculate
+		old i get 0 eq {i dead}{i live} ifelse
+	} for
+	/old current [exch aload pop] def
+} repeat
+
+0 1 gridsize 2 exp 1 sub {
+	/i exch def
+	/x i gridsize mod cellsize mul def
+	/y i gridsize idiv cellsize mul def
+	cycles heatmap i get sub cycles div setgray
+	x y 1 cell
+} for
+
+showpage
+%EOF

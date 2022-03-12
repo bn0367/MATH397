@@ -1,0 +1,119 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox: 0 0 500 500
+
+% algorithm from https://www.math.utah.edu/~treiberg/PenroseSlides.pdf
+% 10 10 scale
+250 250 translate
+
+0.01 setlinewidth
+
+
+/Optima findfont
+20.0 scalefont
+setfont
+
+/pi 180 def
+/fh 5 sqrt 1 sub .5 mul def
+/fi 1 fh sub def
+/rr pi 5 div cos 10 mul def
+/tt pi 5 div sin 10 mul def
+
+/scale {
+	1 dict begin
+	/n exch def
+	n 10 mul
+} def
+
+
+/big {
+	7 dict begin
+	/s exch def
+	/r exch def
+	/q exch def
+	/p exch def
+	/y exch def
+	/x exch def
+	/n exch def
+
+	n 1 gt {
+		n 1 sub
+		p r add fh mul x add
+		q s add fh mul y add
+		fh r mul neg
+		fh s mul neg
+		fh p mul neg
+		fh q mul neg
+		big
+
+		n 1 sub
+		x p add r add
+		y q add s add
+		p r add fi mul neg
+		q s add fi mul neg
+		fi p mul fh r mul sub
+		fi q mul fh s mul sub
+		big
+
+		n 1 sub
+		p r add fh mul x add
+		q s add fh mul y add
+		fi p mul fh r mul sub
+		fi q mul fh s mul sub
+		fh r mul neg
+		fh s mul neg
+		little
+	} {
+		newpath
+		x n scale mul y n scale mul moveto
+		x p add n scale mul y q add n scale mul lineto
+		x p add r add n scale mul y q add s add n scale mul lineto
+		closepath
+		stroke
+	} ifelse
+	end
+} def
+
+/little {
+	7 dict begin
+	/s exch def
+	/r exch def
+	/q exch def
+	/p exch def
+	/y exch def
+	/x exch def
+	/n exch def
+
+	n 1 gt {
+		n 1 sub
+		x p add
+		y q add
+		r p sub
+		s q sub
+		r fh mul p sub
+		s fh mul q sub
+		little
+
+		n 1 sub
+		x p add
+		y q add
+		fh r mul p sub
+		fh s mul q sub
+		fh r mul neg
+		fh s mul neg
+		big
+	} {
+		newpath
+		x r add n scale mul y s add n scale mul moveto
+		x n scale mul y n scale mul lineto
+		x p add n scale mul y q add n scale mul lineto
+		closepath
+		stroke
+	} ifelse
+	end
+} def
+
+8 0 0 10 0 rr tt little
+
+showpage
+
+%EOF

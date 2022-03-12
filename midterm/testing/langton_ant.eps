@@ -1,0 +1,51 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox: 0 0 1000 1000
+
+/size 1000 def
+/gridsize 50 def
+
+/cellsize size gridsize div def
+
+/cycles 1000 def
+
+/x 20 def
+/y 20 def
+
+/direction [0 cellsize] def
+
+/grid [gridsize gridsize mul {rand 2 mod} repeat] def
+
+/clockwise {
+	1 dict begin
+	/n exch def
+	
+	end
+} def
+
+/cell {
+	3 dict begin
+	/state exch def
+	/y exch def
+	/x exch def
+	state 1 eq 
+	{ 
+		x y cellsize cellsize rectfill
+	} {
+		x y cellsize cellsize rectstroke
+	} ifelse
+	end
+} def
+
+cycles {
+	0 1 gridsize 2 exp 1 sub {
+		/i exch def
+		/x i gridsize mod cellsize mul def
+		/y i gridsize idiv cellsize mul def
+	 	x y grid i get cell
+	} for
+	grid i get 1 eq {
+		direction [0 1] eq {}{} ifelse
+	} {
+
+	} ifelse
+} repeat

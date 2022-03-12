@@ -1,0 +1,32 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox: 0 0 1000 1000
+
+/size 1000 def
+/gridsize 50 def
+15 rotate
+/cellsize size gridsize div def
+
+0 2 gridsize {
+	/i exch def
+	/y i cellsize mul def
+	0 2 gridsize {
+		/j exch def
+		/x j cellsize mul def
+		newpath
+		x y moveto
+		cellsize cellsize rlineto
+		60 rotate
+		cellsize cellsize rlineto
+		60 rotate
+		cellsize cellsize rlineto
+		60 rotate
+		cellsize cellsize rlineto
+		60 rotate
+		cellsize cellsize rlineto
+		60 rotate
+		cellsize cellsize rlineto
+		60 rotate
+		closepath
+		stroke
+	} for
+} for
