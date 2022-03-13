@@ -1,0 +1,133 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox: 0 0 500 500
+
+(3d.eps) run
+
+/cycles 1000 def
+
+
+/angle 45 def
+/angle2 30 def
+
+realtime srand
+
+/size 500 def
+/cycles 1000 def
+
+100 100 translate
+
+/gridsize 20 def
+/cellsize size gridsize div def
+cellsize 100 div setlinewidth
+
+/old [gridsize gridsize mul {rand 2 mod} repeat] def
+/current old [exch aload pop] def % [gridsize gridsize mul {0} repeat] def
+/heatmap [gridsize gridsize mul {0} repeat] def
+
+/getneighbors {
+	1 dict begin
+	/i exch def
+	end
+	/neighbors [
+		i 1 gridsize add sub i gridsize sub i 1 gridsize sub sub
+		i 1 sub                             i 1 add
+		i 1 gridsize add add i gridsize add i 1 gridsize sub add
+	] def
+	/l 0 def
+	0 1 7 {
+		/j exch def
+		/c neighbors j get gridsize gridsize mul mod abs def
+		/valid c 0 gt c gridsize gridsize mul lt and def
+		valid {
+			old c get 1 eq {/l l 1 add def} if
+		} if
+	} for
+	l
+} def
+
+/live {
+	1 dict begin
+	/i exch def end
+	/l i getneighbors def
+
+	/x i gridsize mod cellsize mul def
+	/y i gridsize idiv cellsize mul def
+	l 2 ne l 3 ne and {current i 0 put} {current i 1 put heatmap i heatmap i get 1 add put} ifelse
+} def
+
+/dead {
+	1 dict begin
+	/i exch def	end
+	
+	/l i getneighbors def
+
+	/x i gridsize mod cellsize mul def
+	/y i gridsize idiv cellsize mul def
+	l 3 eq l 6 eq or {current i 1 put heatmap i heatmap i get 1 add put} {current i 0 put} ifelse
+} def
+/cell {
+	3 dict begin
+	/state exch def
+	/y exch def
+	/x exch def
+	newpath
+	[x y 0] perspective_project moveto
+	[x cellsize add y 0] perspective_project lineto
+	[x cellsize add y cellsize add 0] perspective_project lineto
+	[x y cellsize add 0] perspective_project lineto
+	closepath
+	state 1 eq { fill } { stroke } ifelse
+	end
+} def
+
+/wipe {
+	newpath
+	size neg size neg moveto
+	size size neg lineto
+	size size lineto
+	size neg size lineto
+	closepath
+	1 1 1 setrgbcolor
+	fill
+	0 0 0 setrgbcolor
+} def
+
+/sleep {
+    usertime add {
+        10 {
+            1 100000 div pop %busy
+            .1 sin 257 cos atan pop %busy busy
+        } repeat
+        dup usertime le {exit}if
+    } loop pop
+} def 
+
+250 0 translate
+% custom camera offsets for this example
+/cPosStart [200.001 200.001 0.5] def
+/cPos cPosStart def
+/cAngle [-0.05 0.001 135.001] def
+
+/cSpeed 2 def
+/circleSize 350 def
+0 1 cycles {
+	/theta exch def
+	/cPos [theta cSpeed mul cos circleSize mul cPosStart 0 get add theta cSpeed mul sin circleSize mul cPosStart 1 get add cPosStart 2 get] def
+	/cAngle [cAngle 0 get cAngle 1 get 360 cPos 0 get cPos 1 get atan sub] def
+	0 1 gridsize 2 exp 1 sub {
+		/i exch def
+		/x i gridsize mod cellsize mul def
+		/y i gridsize idiv cellsize mul def
+		x y current i get cell
+	} for
+	0 1 gridsize 2 exp 1 sub {
+		/i exch def
+		% recalculate
+		old i get 0 eq {i dead}{i live} ifelse
+	} for
+	/old current [exch aload pop] def
+	wipe
+} for
+
+showpage
+%EOF

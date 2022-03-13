@@ -1,0 +1,133 @@
+
+% for debugging: print the stack, then pop the top
+/log {pstack pop} def
+
+% why is atan in postscript but not tan?
+/tan {dup sin exch cos div} def
+
+% arbitrary amount of digits
+/pi 3.141592653 def
+
+/atan2 {
+	2 dict begin
+	/y exch def
+	/x exch def
+	x 0 eq y 0 eq {
+		(x and y are 0 in atan2) error % not a real command -- just puts the string on the stack for slightly easier debugging
+	} if
+	x 0 eq y 0 lt and {-90}{ % -pi / 2 degrees
+		x 0 eq y 0 gt and {90}{
+			x 0 lt y 0 lt and { y x div atan pi sub }{
+				y 0 gt y 0 eq or x 0 lt and { y x div atan pi add }{
+					x 0 gt { y x div atan } { (how) error } ifelse
+				} ifelse
+			} ifelse
+		} ifelse
+	} ifelse
+	end
+} def
+
+/identity {
+	1 dict begin
+	/n exch def
+	/m [n n mul {0.0} repeat] def
+	0 n 1 add n n mul 1 sub {
+		m exch 1.0 put
+	} for
+	m
+	end
+} def
+
+/vsub {
+	2 dict begin
+	/b exch def
+	/a exch def
+
+	/result a length array def
+	0 1 a length 1 sub {
+		/i exch def
+		result i a i get b i get sub put
+	} for
+	result
+	end
+} def
+
+/scalar {
+	1 dict begin
+	/n exch def
+	/a exch def
+	/result [a length {0.0} repeat] def
+	0 1 a length 1 sub {
+		/i exch def
+		result i a i get n mul put
+	} for
+	result
+	end
+} def
+
+/matrix_multiply {
+	3 dict begin
+
+	/m exch def
+	/b exch def
+	/a exch def
+
+	/n b length m idiv def
+	/l a length m idiv def
+
+	/result [n l mul {0.0} repeat] def
+	0 1 n l mul 1 sub {
+		/i exch def
+		/row a i m m n eq {idiv}{mod} ifelse l mul m getinterval def
+		/col m array def
+		0 1 m 1 sub {
+			/j exch def
+			col j b j n mul i n mod add get put
+		} for
+		/c 0.0 def
+		0 1 m 1 sub {
+			/j exch def
+			/c c row j get col j get mul add def
+		} for
+		result i c put
+	} for
+	result
+	end
+} def
+
+/iso_rot_matrix {
+	1 dict begin
+	/n exch def
+	[1 0 0 0 angle2 tan arcsin cos angle2 tan arcsin sin 0 angle2 tan arcsin sin neg angle2 tan arcsin cos] [n cos 0 n sin neg 0 1 0 n sin 0 n cos] 3 matrix_multiply
+	end
+} def
+
+/iso_project {
+	1 dict begin
+	/point exch def
+	/newPoint angle iso_rot_matrix point 3 matrix_multiply def
+	newPoint 0 get
+	newPoint 1 get
+	end
+} def
+
+/cPos [0 0 .5] def
+% if any of cAngle are 0, things go very wrong
+/cAngle [0.001 0.001 135.001] def
+/displaySurface [0.001 0.001 .5] def
+
+/perspective_rot_matrix {
+	[1 0 0 0 cAngle 0 get cos cAngle 0 get sin 0 cAngle 0 get sin neg cAngle 0 get cos] [cAngle 1 get cos 0 cAngle 1 get sin neg 0 1 0 cAngle 1 get sin 0 cAngle 1 get cos] 3 matrix_multiply [cAngle 2 get cos cAngle 2 get sin 0 cAngle 2 get sin neg cAngle 2 get cos 0 0 0 1] 3 matrix_multiply
+} def
+
+/perspective_project {
+	1 dict begin
+	/point exch def
+	/cPoint cPos point vsub def
+	/newPoint perspective_rot_matrix cPoint 3 matrix_multiply def
+	% x
+	displaySurface 2 get newPoint 2 get 0.1 add div newPoint 0 get mul displaySurface 0 get add
+	% y
+	displaySurface 2 get newPoint 2 get 0.1 add div newPoint 1 get mul displaySurface 1 get add
+	end
+} def
