@@ -5,23 +5,19 @@
 
 /cycles 1000 def
 
-
-/angle 45 def
-/angle2 30 def
-
 realtime srand
 
 /size 500 def
 /cycles 1000 def
 
-100 100 translate
+size 1.25 div size 3 div translate
 
 /gridsize 20 def
 /cellsize size gridsize div def
 cellsize 100 div setlinewidth
 
 /old [gridsize gridsize mul {rand 2 mod} repeat] def
-/current old [exch aload pop] def % [gridsize gridsize mul {0} repeat] def
+/current old [exch aload pop] def
 /heatmap [gridsize gridsize mul {0} repeat] def
 
 /getneighbors {
@@ -92,17 +88,7 @@ cellsize 100 div setlinewidth
 	0 0 0 setrgbcolor
 } def
 
-/sleep {
-    usertime add {
-        10 {
-            1 100000 div pop %busy
-            .1 sin 257 cos atan pop %busy busy
-        } repeat
-        dup usertime le {exit}if
-    } loop pop
-} def 
 
-250 0 translate
 % custom camera offsets for this example
 /cPosStart [200.001 200.001 0.5] def
 /cPos cPosStart def
@@ -113,7 +99,7 @@ cellsize 100 div setlinewidth
 0 1 cycles {
 	/theta exch def
 	/cPos [theta cSpeed mul cos circleSize mul cPosStart 0 get add theta cSpeed mul sin circleSize mul cPosStart 1 get add cPosStart 2 get] def
-	/cAngle [cAngle 0 get cAngle 1 get 360 cPos 0 get cPos 1 get atan sub] def
+	/cAngle [cAngle 0 get cAngle 1 get 360.01 cPos 0 get cPos 1 get atan sub] def
 	0 1 gridsize 2 exp 1 sub {
 		/i exch def
 		/x i gridsize mod cellsize mul def
