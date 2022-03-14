@@ -10,13 +10,13 @@ realtime srand
 /cycles 1000 def
 
 % disable back-face culling (because it doesn't work correctly yet)
-/enable_back_face_culling true def
+/enable_back_face_culling false def
 % full or wireframe
 /render_method (full) def
 
 size 1.25 div size 3 div translate
 
-/gridsize 16 def
+/gridsize 12 def
 /cellsize size gridsize div def
 cellsize 150 div setlinewidth
 
@@ -96,7 +96,9 @@ cellsize 150 div setlinewidth
 /cSpeed 5 def
 /circleSize 500 def
 
+/timeTaken 0 def
 0 1 cycles {
+	/timeTaken realtime def
 	/theta exch def
 	/cPos [theta cSpeed mul cos circleSize mul cPosStart 0 get add theta cSpeed mul sin circleSize mul cPosStart 1 get add cPosStart 2 get] def
 	/cAngle [cAngle 0 get cAngle 1 get theta cSpeed mul 90 sub] def
@@ -114,6 +116,8 @@ cellsize 150 div setlinewidth
 		old i get 0 eq {i dead}{i live} ifelse
 	} for
 	/old current [exch aload pop] def
+	/timeTaken realtime timeTaken sub def
+	timeTaken ==
 	copypage
 } for
 

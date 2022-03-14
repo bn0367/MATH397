@@ -234,7 +234,7 @@
 	tris length 1 sub -1 0 {
 		/i exch def
 		/points tris i get def
-		i 12 div i 12 div i 12 div setrgbcolor
+		% i 12 div i 12 div i 12 div setrgbcolor
 		enable_back_face_culling { points back_face_cull false eq {points polygon} if } { points polygon } ifelse
 	} for
 	end
