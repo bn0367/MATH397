@@ -87,12 +87,12 @@ setfont
 	end
 } def
 cycles {
-	%0 1 gridsize 2 exp 1 sub {
-	%	/i exch def
-	%	/x i gridsize mod cellsize mul def
-	%	/y i gridsize idiv cellsize mul def
-	%	x y current i get cell
-	%} for
+	0 1 gridsize 2 exp 1 sub {
+		/i exch def
+		/x i gridsize mod cellsize mul def
+		/y i gridsize idiv cellsize mul def
+		x y current i get cell
+	} for
 	0 1 gridsize 2 exp 1 sub {
 		/i exch def
 		% recalculate
@@ -101,13 +101,13 @@ cycles {
 	/old current [exch aload pop] def
 } repeat
 
-0 1 gridsize 2 exp 1 sub {
-	/i exch def
-	/x i gridsize mod cellsize mul def
-	/y i gridsize idiv cellsize mul def
-	cycles heatmap i get sub cycles div setgray
-	x y 1 cell
-} for
+%0 1 gridsize 2 exp 1 sub {
+%	/i exch def
+%	/x i gridsize mod cellsize mul def
+%	/y i gridsize idiv cellsize mul def
+%	cycles heatmap i get sub cycles div setgray
+%	x y 1 cell
+%} for
 
 showpage
 %EOF

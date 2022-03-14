@@ -3,18 +3,20 @@
 
 (3d.eps) run
 
-/cycles 1000 def
 
 realtime srand
 
 /size 500 def
 /cycles 1000 def
 
+% disable back-face culling (because it doesn't work correctly yet)
+/enable_back_face_culling false def
+
 size 1.25 div size 3 div translate
 
-/gridsize 20 def
+/gridsize 16 def
 /cellsize size gridsize div def
-cellsize 100 div setlinewidth
+cellsize 150 div setlinewidth
 
 /old [gridsize gridsize mul {rand 2 mod} repeat] def
 /current old [exch aload pop] def
@@ -59,20 +61,14 @@ cellsize 100 div setlinewidth
 
 	/x i gridsize mod cellsize mul def
 	/y i gridsize idiv cellsize mul def
-	l 3 eq l 6 eq or {current i 1 put heatmap i heatmap i get 1 add put} {current i 0 put} ifelse
+	l 3 eq {current i 1 put heatmap i heatmap i get 1 add put} {current i 0 put} ifelse
 } def
 /cell {
 	3 dict begin
 	/state exch def
 	/y exch def
 	/x exch def
-	newpath
-	[x y 0] perspective_project moveto
-	[x cellsize add y 0] perspective_project lineto
-	[x cellsize add y cellsize add 0] perspective_project lineto
-	[x y cellsize add 0] perspective_project lineto
-	closepath
-	state 1 eq { fill } { stroke } ifelse
+	state 1 eq { /render_method (full) def [x y 0] cellsize cube } { /render_method (wireframe) def } ifelse
 	end
 } def
 
@@ -96,10 +92,11 @@ cellsize 100 div setlinewidth
 
 /cSpeed 2 def
 /circleSize 350 def
+
 0 1 cycles {
 	/theta exch def
 	/cPos [theta cSpeed mul cos circleSize mul cPosStart 0 get add theta cSpeed mul sin circleSize mul cPosStart 1 get add cPosStart 2 get] def
-	/cAngle [cAngle 0 get cAngle 1 get 360.01 cPos 0 get cPos 1 get atan sub] def
+	/cAngle [cAngle 0 get cAngle 1 get theta 360 better_mod cSpeed mul 90 sub] def
 	0 1 gridsize 2 exp 1 sub {
 		/i exch def
 		/x i gridsize mod cellsize mul def
@@ -112,7 +109,7 @@ cellsize 100 div setlinewidth
 		old i get 0 eq {i dead}{i live} ifelse
 	} for
 	/old current [exch aload pop] def
-	wipe
+	copypage
 } for
 
 showpage

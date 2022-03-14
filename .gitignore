@@ -3,3 +3,16 @@ __pycache__/
 .vs/
 nbodyproblem/frames/*.png
 nbodyproblem/frames/*.eps
+*.aux
+*.lof
+*.log
+*.lot
+*.fls
+*.out
+*.toc
+*.fmt
+*.fot
+*.cb
+*.cb2
+.*.lb
+*.synctex.gz

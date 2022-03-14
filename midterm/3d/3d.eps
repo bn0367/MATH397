@@ -1,31 +1,32 @@
+% MODIFIABLE CONSTS
+% whether or not to use back-face culling
+/enable_back_face_culling true def
+% whether to draw full tris or just wireframe versions
+/render_method (full) def
 
-% for debugging: print the stack, then pop the top
-/log {pstack pop} def
 
 % why is atan in postscript but not tan?
 /tan {dup sin exch cos div} def
 
-% arbitrary amount of digits
-/pi 3.141592653 def
-
 /atan2 {
 	2 dict begin
+	% atan2 implementation because postscript doesn't have one
 	/y exch def
 	/x exch def
-	x 0 eq y 0 eq {
-		(x and y are 0 in atan2) error % not a real command -- just puts the string on the stack for slightly easier debugging
-	} if
-	x 0 eq y 0 lt and {-90}{ % -pi / 2 degrees
-		x 0 eq y 0 gt and {90}{
-			x 0 lt y 0 lt and { y x div atan pi sub }{
-				y 0 gt y 0 eq or x 0 lt and { y x div atan pi add }{
-					x 0 gt { y x div atan } { (how) error } ifelse
+	x 0 gt { y x atan }{
+		y 0 gt y 0 eq or x 0 lt and { y x atan 180 add }{
+			x 0 lt y 0 lt and { y x atan 180 sub }{
+				x 0 eq y 0 gt and { 90 }{
+					x 0 eq y 0 lt and { -90 } { (undefined atan2 result) error } ifelse
 				} ifelse
 			} ifelse
 		} ifelse
 	} ifelse
 	end
 } def
+
+% arbitrary amount of digits
+/pi 3.141592653 def
 
 /identity {
 	1 dict begin
@@ -129,5 +130,109 @@
 	displaySurface 2 get newPoint 2 get 0.1 add div newPoint 0 get mul displaySurface 0 get add
 	% y
 	displaySurface 2 get newPoint 2 get 0.1 add div newPoint 1 get mul displaySurface 1 get add
+	end
+} def
+
+% why can I not do mod with decimals
+/better_mod {
+	2 dict begin
+	/n exch def
+	/m exch def
+	m m n div truncate n mul sub
+	end
+} def
+
+/dot_product {
+	2 dict begin
+	/b exch def
+	/a exch def
+	/result 0 def
+	0 1 a length 1 sub {
+		/i exch def
+		/result a i get b i get mul result add def
+	} for
+	result
+	end
+} def
+
+/normal_tri {
+	1 dict begin
+	/points exch def
+	/A points 1 get points 0 get vsub def
+	/B points 2 get points 0 get vsub def
+	[
+		A 1 get B 2 get mul A 2 get B 1 get mul sub
+		A 2 get B 0 get mul A 0 get B 2 get mul sub
+		A 0 get B 1 get mul A 1 get B 0 get mul sub
+	]
+	end
+} def
+
+/back_face_cull {
+	1 dict begin
+	/points exch def
+	points 0 get cPos vsub points normal_tri dot_product 0 ge
+	end
+} def
+
+% note to me: pay attention to winding order
+/create_polygon {
+	1 dict begin
+	/points exch def
+	points 0 get perspective_project moveto
+	1 1 points length 1 sub {
+		/i exch def
+		points i get perspective_project lineto
+	} for
+	end
+} def
+
+/polygon {
+	1 dict begin
+	/points exch def
+	newpath
+	points create_polygon
+	closepath
+	(full) render_method eq { fill } { stroke } ifelse
+	end
+} def
+
+% z scale is still messed up
+/zMult 0.0016 def
+/cube {
+	2 dict begin
+	/size exch def
+	/pos exch def
+	/x pos 0 get def
+	/y pos 1 get def
+	/z pos 2 get def
+	/zSize size zMult mul def
+	/tris [
+		% front tris
+		[[x y z] [x y zSize] [x size add y z]]
+		[[x y zSize] [x size add y zSize] [x size add y z]]
+		% left tris
+		[[x y zSize] [x y size add z] [x y z]]
+		[[x y zSize] [x y size add zSize] [x y size add z]]
+		% right tris
+		[[x size add y z] [x size add y zSize] [x size add y z]]
+		[[x size add y z] [x size add y zSize] [x size add y size add z]]
+		% back tris
+		[[x y size add z] [x y size add zSize] [x size add y size add z]]
+		[[x y size add zSize] [x size add y size add zSize] [x size add y size add z]]
+		% top tris
+		[[x y zSize] [x y size add zSize] [x size add y zSize]]
+		[[x y size add zSize] [x size add y size add zSize] [x size add y zSize]]
+		% bottom tris
+		[[x y z] [x y size add z] [x size add y z]]
+		[[x y size add z] [x size add y size add z] [x size add y z]]
+	] def
+	newpath
+	0 1 tris length 1 sub {
+		/i exch def
+		/points tris i get def
+		enable_back_face_culling { points back_face_cull {points polygon} if } { points polygon } ifelse
+	} for
+	closepath
 	end
 } def
