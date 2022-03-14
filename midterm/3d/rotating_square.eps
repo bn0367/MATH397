@@ -1,6 +1,6 @@
 %!PS-Adobe-3.0 EPSF-3.0
 %%BoundingBox: 0 0 500 500
-
+% import 3d lib
 (3d.eps) run
 
 
@@ -10,7 +10,9 @@ realtime srand
 /cycles 1000 def
 
 % disable back-face culling (because it doesn't work correctly yet)
-/enable_back_face_culling false def
+/enable_back_face_culling true def
+% full or wireframe
+/render_method (full) def
 
 size 1.25 div size 3 div translate
 
@@ -18,6 +20,7 @@ size 1.25 div size 3 div translate
 /cellsize size gridsize div def
 cellsize 150 div setlinewidth
 
+% used for GOL: one is used to display, one is used to calculate because all the cells have to be updated at the same time
 /old [gridsize gridsize mul {rand 2 mod} repeat] def
 /current old [exch aload pop] def
 /heatmap [gridsize gridsize mul {0} repeat] def
@@ -68,7 +71,7 @@ cellsize 150 div setlinewidth
 	/state exch def
 	/y exch def
 	/x exch def
-	state 1 eq { .4 .4 .4 setrgbcolor [x y 0] cellsize cube } { 0 .6 .4 setrgbcolor [x y 0] cellsize square} ifelse
+	state 1 eq { 0 0 0 setrgbcolor [x y 0] cellsize cube } {} ifelse
 	end
 } def
 
@@ -90,13 +93,15 @@ cellsize 150 div setlinewidth
 /cPos cPosStart def
 /cAngle [-0.05 0.001 135.001] def
 
-/cSpeed 2 def
-/circleSize 350 def
+/cSpeed 5 def
+/circleSize 500 def
 
 0 1 cycles {
 	/theta exch def
 	/cPos [theta cSpeed mul cos circleSize mul cPosStart 0 get add theta cSpeed mul sin circleSize mul cPosStart 1 get add cPosStart 2 get] def
-	/cAngle [cAngle 0 get cAngle 1 get theta 360 better_mod cSpeed mul 90 sub] def
+	/cAngle [cAngle 0 get cAngle 1 get theta cSpeed mul 90 sub] def
+	draw_axes
+	0 .6 .4 setrgbcolor [0 0 0] cellsize gridsize mul square
 	0 1 gridsize 2 exp 1 sub {
 		/i exch def
 		/x i gridsize mod cellsize mul def

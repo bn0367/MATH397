@@ -2,7 +2,7 @@
 % whether or not to use back-face culling
 /enable_back_face_culling true def
 % whether to draw full tris or just wireframe versions
-/render_method (full) def
+/render_method (wireframe) def
 
 
 % why is atan in postscript but not tan?
@@ -179,11 +179,14 @@
 /create_polygon {
 	1 dict begin
 	/points exch def
-	points 0 get perspective_project moveto
+	/newpoints points length array def
+	newpoints 0 [points 0 get perspective_project] put
+	newpoints 0 get aload pop moveto
 	1 1 points length 1 sub {
 		/i exch def
-		points i get perspective_project lineto
-	} for
+		newpoints i [points i get perspective_project] put
+		newpoints i get aload pop lineto
+	} for	
 	end
 } def
 
@@ -208,29 +211,31 @@
 	/z pos 2 get def
 	/zSize size zMult mul def
 	/tris [
-		% front tris
-		[[x y z] [x y zSize] [x size add y z]]
-		[[x y zSize] [x size add y zSize] [x size add y z]]
-		% left tris
-		[[x y zSize] [x y size add z] [x y z]]
-		[[x y zSize] [x y size add zSize] [x y size add z]]
-		% right tris
-		[[x size add y z] [x size add y zSize] [x size add y z]]
-		[[x size add y z] [x size add y zSize] [x size add y size add z]]
-		% back tris
-		[[x y size add z] [x y size add zSize] [x size add y size add z]]
-		[[x y size add zSize] [x size add y size add zSize] [x size add y size add z]]
 		% top tris
-		[[x y zSize] [x y size add zSize] [x size add y zSize]]
-		[[x y size add zSize] [x size add y size add zSize] [x size add y zSize]]
+		[[x y zSize] [x size add y zSize] [x y size add zSize]]
+		[[x y size add zSize] [x size add y zSize] [x size add y size add zSize]]
 		% bottom tris
 		[[x y z] [x y size add z] [x size add y z]]
 		[[x y size add z] [x size add y size add z] [x size add y z]]
+		% front tris
+		[[x y z] [x size add y z] [x y zSize]]
+		[[x y zSize] [x size add y z] [x size add y zSize]]
+		% left tris
+		[[x y zSize] [x y size add z] [x y z]]
+		[[x y zSize] [x y size add z] [x y size add zSize]]
+		% right tris
+		[[x size add y size add z] [x size add y zSize] [x size add y size add zSize]]
+		[[x size add y z] [x size add y size add z] [x size add y zSize]]
+		% back tris
+		[[x y size add z] [x y size add zSize] [x size add y size add z]]
+		[[x y size add zSize] [x size add y size add zSize] [x size add y size add z]]
+
 	] def
-	0 1 tris length 1 sub {
+	tris length 1 sub -1 0 {
 		/i exch def
 		/points tris i get def
-		enable_back_face_culling { points back_face_cull {points polygon} if } { points polygon } ifelse
+		i 12 div i 12 div i 12 div setrgbcolor
+		enable_back_face_culling { points back_face_cull false eq {points polygon} if } { points polygon } ifelse
 	} for
 	end
 } def
@@ -250,4 +255,25 @@
 	enable_back_face_culling { points2 back_face_cull {points2 polygon} if } { points2 polygon } ifelse
 
 	end
+} def
+
+/draw_axes {
+	newpath
+	[0 0 0] perspective_project moveto
+	[1000 0 0] perspective_project lineto
+	closepath
+	1 0 0 setrgbcolor
+	stroke
+	newpath
+	[0 0 0] perspective_project moveto
+	[0 1000 0] perspective_project lineto
+	closepath
+	0 1 0 setrgbcolor
+	stroke
+	newpath
+	[0 0 0] perspective_project moveto
+	[0 0 -1000] perspective_project lineto
+	closepath
+	0 0 1 setrgbcolor
+	stroke
 } def
