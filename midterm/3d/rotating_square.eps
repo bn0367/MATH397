@@ -68,7 +68,7 @@ cellsize 150 div setlinewidth
 	/state exch def
 	/y exch def
 	/x exch def
-	state 1 eq { /render_method (full) def [x y 0] cellsize cube } { /render_method (wireframe) def } ifelse
+	state 1 eq { .4 .4 .4 setrgbcolor [x y 0] cellsize cube } { 0 .6 .4 setrgbcolor [x y 0] cellsize square} ifelse
 	end
 } def
 

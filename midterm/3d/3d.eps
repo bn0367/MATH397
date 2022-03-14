@@ -227,12 +227,27 @@
 		[[x y z] [x y size add z] [x size add y z]]
 		[[x y size add z] [x size add y size add z] [x size add y z]]
 	] def
-	newpath
 	0 1 tris length 1 sub {
 		/i exch def
 		/points tris i get def
 		enable_back_face_culling { points back_face_cull {points polygon} if } { points polygon } ifelse
 	} for
-	closepath
+	end
+} def
+
+/square {
+	2 dict begin
+	/size exch def
+	/pos exch def
+	/x pos 0 get def
+	/y pos 1 get def
+	/z pos 2 get def
+	/zSize size zMult mul def
+	/points1 [[x y z] [x y size add z] [x size add y z]] def
+	/points2 [[x y size add z] [x size add y size add z] [x size add y z]] def
+	
+	enable_back_face_culling { points1 back_face_cull {points1 polygon} if } { points1 polygon } ifelse
+	enable_back_face_culling { points2 back_face_cull {points2 polygon} if } { points2 polygon } ifelse
+
 	end
 } def
