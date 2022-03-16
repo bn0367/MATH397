@@ -197,7 +197,7 @@
 	newpath
 	points create_polygon
 	closepath
-	(full) render_method eq { fill } { stroke } ifelse
+	(both) render_method eq { gsave 0 0 0 setrgbcolor fill grestore stroke } { (full) render_method eq { fill }{ stroke } ifelse } ifelse
 	end
 } def
 
@@ -270,7 +270,7 @@
 	/to_unit_sphere {
 		1 dict begin
 		/point exch def
-		/length point 0 get dup mul point 1 get dup mul add point 2 get dup mul add sqrt def
+		/length point 0 get 2 exp point 1 get 2 exp add point 2 get 2 exp add sqrt def
 		[point 0 get length div point 1 get length div point 2 get length div]
 		end
 	} def
@@ -279,7 +279,7 @@
 		2 dict begin
 		/point2 exch def
 		/point1 exch def
-		[point1 0 get point2 0 get add 2 div point1 1 get point2 1 get add 2 div point1 2 get point2 2 get add 2 div] to_unit_sphere
+		[point1 0 get point2 0 get add 2 div point1 1 get point2 1 get add 2 div point1 2 get point2 2 get add 2 div]
 		end
 	} def
 
@@ -330,16 +330,19 @@
 		0 1 faces length 1 sub {
 			/i exch def
 			/face faces i get def
-			/a face 0 get face 1 get middle def
-			/b face 1 get face 2 get middle def
-			/c face 2 get face 0 get middle def
-			faces2 faceIdx [face 0 get a c] put
+			/a face 0 get def
+			/b face 1 get def
+			/c face 2 get def
+			/m1 a b middle def
+			/m2 b c middle def
+			/m3 c a middle def
+			faces2 faceIdx [a m1 m3] put
 			/faceIdx faceIdx 1 add def
-			faces2 faceIdx [face 1 get b a] put
+			faces2 faceIdx [b m2 m1] put
 			/faceIdx faceIdx 1 add def
-			faces2 faceIdx [face 2 get c b] put
+			faces2 faceIdx [c m3 m2] put
 			/faceIdx faceIdx 1 add def
-			faces2 faceIdx [a b c] put
+			faces2 faceIdx [m1 m2 m3] put
 			/faceIdx faceIdx 1 add def
 		} for
 		/faces faces2 [exch aload pop] def
@@ -347,8 +350,13 @@
 	0 1 faces length 1 sub {
 		/i exch def
 		/tri faces i get def
-		tri ==
-		tri polygon
+		0 1 2 {
+			/j exch def
+			/point tri j get to_unit_sphere def
+			/newPoint [point 0 get radius mul center 0 get add point 1 get radius mul center 1 get add point 2 get 0.0016 mul radius mul center 2 get add] def
+			tri j newPoint put
+		} for
+		enable_back_face_culling { tri back_face_cull true eq {tri polygon} if } { tri polygon } ifelse
 	} for
 	end
 } def
