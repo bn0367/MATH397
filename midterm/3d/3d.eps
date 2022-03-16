@@ -171,7 +171,8 @@
 /back_face_cull {
 	1 dict begin
 	/points exch def
-	points 0 get cPos vsub points normal_tri dot_product 0 ge
+	% points 0 get cPos vsub points normal_tri dot_product 0 ge
+	points normal_tri 2 get 0 ge
 	end
 } def
 
@@ -234,8 +235,8 @@
 	tris length 1 sub -1 0 {
 		/i exch def
 		/points tris i get def
-		% i 12 div i 12 div i 12 div setrgbcolor
-		enable_back_face_culling { points back_face_cull false eq {points polygon} if } { points polygon } ifelse
+		i 12 div i 12 div i 12 div setrgbcolor
+		enable_back_face_culling { points back_face_cull true eq {points polygon} if } { points polygon } ifelse
 	} for
 	end
 } def
@@ -254,6 +255,101 @@
 	enable_back_face_culling { points1 back_face_cull {points1 polygon} if } { points1 polygon } ifelse
 	enable_back_face_culling { points2 back_face_cull {points2 polygon} if } { points2 polygon } ifelse
 
+	end
+} def
+% algorithm from http://blog.andreaskahler.com/2009/06/creating-icosphere-mesh-in-code.html
+/zMult 0.0025 def
+/icosphere {
+	2 dict begin
+	/subdivisions exch def
+	/radius exch def
+	/center exch def
+
+	/vertices 12 array def
+	/faces 20 array def
+	/to_unit_sphere {
+		1 dict begin
+		/point exch def
+		/length point 0 get dup mul point 1 get dup mul add point 2 get dup mul add sqrt def
+		[point 0 get length div point 1 get length div point 2 get length div]
+		end
+	} def
+
+	/middle {
+		2 dict begin
+		/point2 exch def
+		/point1 exch def
+		[point1 0 get point2 0 get add 2 div point1 1 get point2 1 get add 2 div point1 2 get point2 2 get add 2 div] to_unit_sphere
+		end
+	} def
+
+	/t 5 sqrt 1 add 2 div def
+
+	vertices 0 [-1 t 0] to_unit_sphere put
+	vertices 1 [1 t 0] to_unit_sphere put
+	vertices 2 [-1 t neg 0] to_unit_sphere put
+	vertices 3 [1 t neg 0] to_unit_sphere put
+
+	vertices 4 [0 -1 t] to_unit_sphere put
+	vertices 5 [0 1 t] to_unit_sphere put
+	vertices 6 [0 -1 t neg] to_unit_sphere put
+	vertices 7 [0 1 t neg] to_unit_sphere put
+
+	vertices 8 [t 0 -1] to_unit_sphere put
+	vertices 9 [t 0 1] to_unit_sphere put
+	vertices 10 [t neg 0 -1] to_unit_sphere put
+	vertices 11 [t neg 0 1] to_unit_sphere put
+
+	faces 0 [vertices 0 get vertices 11 get vertices 5 get] put
+	faces 1 [vertices 0 get vertices 5 get vertices 1 get] put
+	faces 2 [vertices 0 get vertices 1 get vertices 7 get] put
+	faces 3 [vertices 0 get vertices 7 get vertices 10 get] put
+	faces 4 [vertices 0 get vertices 10 get vertices 11 get] put
+
+	faces 5 [vertices 1 get vertices 5 get vertices 9 get] put
+	faces 6 [vertices 5 get vertices 11 get vertices 4 get] put
+	faces 7 [vertices 11 get vertices 10 get vertices 2 get] put
+	faces 8 [vertices 10 get vertices 7 get vertices 6 get] put
+	faces 9 [vertices 7 get vertices 1 get vertices 8 get] put
+
+	faces 10 [vertices 3 get vertices 9 get vertices 4 get] put
+	faces 11 [vertices 3 get vertices 4 get vertices 2 get] put
+	faces 12 [vertices 3 get vertices 2 get vertices 6 get] put
+	faces 13 [vertices 3 get vertices 6 get vertices 8 get] put
+	faces 14 [vertices 3 get vertices 8 get vertices 9 get] put
+
+	faces 15 [vertices 4 get vertices 9 get vertices 5 get] put
+	faces 16 [vertices 2 get vertices 4 get vertices 11 get] put
+	faces 17 [vertices 6 get vertices 2 get vertices 10 get] put
+	faces 18 [vertices 8 get vertices 6 get vertices 7 get] put
+	faces 19 [vertices 9 get vertices 8 get vertices 1 get] put
+
+	0 1 subdivisions 1 sub {
+		/faces2 faces length 4 mul cvi array def
+		/faceIdx 0 def
+		0 1 faces length 1 sub {
+			/i exch def
+			/face faces i get def
+			/a face 0 get face 1 get middle def
+			/b face 1 get face 2 get middle def
+			/c face 2 get face 0 get middle def
+			faces2 faceIdx [face 0 get a c] put
+			/faceIdx faceIdx 1 add def
+			faces2 faceIdx [face 1 get b a] put
+			/faceIdx faceIdx 1 add def
+			faces2 faceIdx [face 2 get c b] put
+			/faceIdx faceIdx 1 add def
+			faces2 faceIdx [a b c] put
+			/faceIdx faceIdx 1 add def
+		} for
+		/faces faces2 [exch aload pop] def
+	} for
+	0 1 faces length 1 sub {
+		/i exch def
+		/tri faces i get def
+		tri ==
+		tri polygon
+	} for
 	end
 } def
 
