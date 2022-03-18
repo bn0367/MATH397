@@ -3,6 +3,9 @@
 /enable_back_face_culling true def
 % whether to draw full tris or just wireframe versions
 /render_method (wireframe) def
+% the z scale is super messed up, so you can change this if you want but it will break
+% this constant should scale z to the same scale as the toher two axes
+/zMult 0.0016 def
 
 
 % why is atan in postscript but not tan?
@@ -48,6 +51,20 @@
 	0 1 a length 1 sub {
 		/i exch def
 		result i a i get b i get sub put
+	} for
+	result
+	end
+} def
+
+/vadd {
+	2 dict begin
+	/b exch def
+	/a exch def
+
+	/result a length array def
+	0 1 a length 1 sub {
+		/i exch def
+		result i a i get b i get add put
 	} for
 	result
 	end
@@ -160,19 +177,74 @@
 	/points exch def
 	/A points 1 get points 0 get vsub def
 	/B points 2 get points 0 get vsub def
-	[
-		A 1 get B 2 get mul A 2 get B 1 get mul sub
-		A 2 get B 0 get mul A 0 get B 2 get mul sub
+	/normal [
+		A 1 get B 2 get zMult div mul A 2 get zMult div B 1 get mul sub
+		A 2 get zMult div B 0 get mul A 0 get B 2 get zMult div mul sub
 		A 0 get B 1 get mul A 1 get B 0 get mul sub
-	]
+	] def
+	normal
+	end
+} def
+
+/midpoint {
+	1 dict begin
+	/points exch def
+	/total [points 0 get length {0} repeat] def
+	0 1 points length 1 sub {
+		/i exch def
+		0 1 points i get length 1 sub {
+			/j exch def
+			total j total j get points i get j get add put
+		} for
+	} for
+	0 1 total length 1 sub {
+		/i exch def
+		total i total i get points length div put
+	} for
+	total
+	end
+} def
+
+/normal_camera {
+	/cPos2 [cPos 1 get neg cPos 0 get 0] def
+	/normal [
+		cPos 1 get cPos2 2 get zMult div mul cPos 2 get zMult div cPos2 1 get mul sub
+		cPos 2 get zMult div cPos2 0 get mul cPos 0 get cPos2 2 get zMult div mul sub
+		cPos 0 get cPos2 1 get mul cPos 1 get cPos2 0 get mul sub
+	] def
+	normal
+} def
+
+% from https://stackoverflow.com/questions/5666222/3d-line-plane-intersection
+/line_plane_intersect {
+	4 dict begin
+	/plane_normal exch def
+	/plane_point exch def
+	/line_point1 exch def
+	/line_point2 exch def
+
+	plane_normal ==
+
+	/u line_point2 line_point1 vsub def
+	/dot plane_normal u dot_product def
+	dot ==
+	dot abs zMult ge {
+		/w line_point1 plane_point vsub def
+		/fac plane_normal w dot_product neg dot div def
+		/u u fac scalar def
+		line_point1 u vadd ==
+		false
+	} {
+		false
+	} ifelse
 	end
 } def
 
 /back_face_cull {
 	1 dict begin
 	/points exch def
-	% points 0 get cPos vsub points normal_tri dot_product 0 ge
-	points normal_tri 2 get 0 ge
+	points midpoint points normal_tri cPos cPos cAngle normal_camera line_plane_intersect
+	% points normal_tri 2 get 0 ge
 	end
 } def
 
@@ -201,8 +273,6 @@
 	end
 } def
 
-% z scale is still messed up
-/zMult 0.0016 def
 /cube {
 	2 dict begin
 	/size exch def
@@ -235,7 +305,7 @@
 	tris length 1 sub -1 0 {
 		/i exch def
 		/points tris i get def
-		i 12 div i 12 div i 12 div setrgbcolor
+		% i 12 div i 12 div i 12 div setrgbcolor
 		enable_back_face_culling { points back_face_cull true eq {points polygon} if } { points polygon } ifelse
 	} for
 	end
@@ -258,7 +328,6 @@
 	end
 } def
 % algorithm from http://blog.andreaskahler.com/2009/06/creating-icosphere-mesh-in-code.html
-/zMult 0.0025 def
 /icosphere {
 	2 dict begin
 	/subdivisions exch def
@@ -353,7 +422,7 @@
 		0 1 2 {
 			/j exch def
 			/point tri j get to_unit_sphere def
-			/newPoint [point 0 get radius mul center 0 get add point 1 get radius mul center 1 get add point 2 get 0.0016 mul radius mul center 2 get add] def
+			/newPoint [point 0 get radius mul center 0 get add point 1 get radius mul center 1 get add point 2 get radius mul center 2 get add zMult mul] def
 			tri j newPoint put
 		} for
 		enable_back_face_culling { tri back_face_cull true eq {tri polygon} if } { tri polygon } ifelse

@@ -10,7 +10,7 @@ realtime srand
 /cycles 1000 def
 
 % disable back-face culling (because it doesn't work correctly yet)
-/enable_back_face_culling false def
+/enable_back_face_culling true def
 % full or wireframe
 /render_method (wireframe) def
 
@@ -97,19 +97,22 @@ cellsize 150 div setlinewidth
 /circleSize 500 def
 
 /timeTaken 0 def
+
+/points [[0 10 0.32] [30 -20 0.16] [0 0 0]] def
 0 1 cycles {
 	/timeTaken realtime def
 	/theta exch def
 	/cPos [theta cSpeed mul cos circleSize mul cPosStart 0 get add theta cSpeed mul sin circleSize mul cPosStart 1 get add cPosStart 2 get] def
 	/cAngle [cAngle 0 get cAngle 1 get theta cSpeed mul 90 sub] def
 	draw_axes
-	0 1 0 setrgbcolor
-	[200 200 0] 100 0 icosphere
-	1 0 0 setrgbcolor
-	[200 200 0] 200 1 icosphere
-	0 0 1 setrgbcolor
-	[200 200 0] 300 2 icosphere
-	%0 .6 .4 setrgbcolor [0 0 0] cellsize gridsize mul square
+	%0 1 0 setrgbcolor
+	%[200 200 100] 100 0 icosphere
+	%1 0 0 setrgbcolor
+	%[200 200 50] 200 1 icosphere
+	%0 0 1 setrgbcolor
+	%[200 200 0] 300 2 icosphere
+	[0 0 0] 100 cube 
+	% [0 0 0] cellsize gridsize mul square
 	%0 1 gridsize 2 exp 1 sub {
 	%	/i exch def
 	%	/x i gridsize mod cellsize mul def
