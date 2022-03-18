@@ -253,13 +253,10 @@
 /create_polygon {
 	1 dict begin
 	/points exch def
-	/newpoints points length array def
-	newpoints 0 [points 0 get perspective_project] put
-	newpoints 0 get aload pop moveto
+	points 0 get perspective_project moveto
 	1 1 points length 1 sub {
 		/i exch def
-		newpoints i [points i get perspective_project] put
-		newpoints i get aload pop lineto
+		points i get perspective_project lineto
 	} for	
 	end
 } def
@@ -303,11 +300,10 @@
 		[[x y size add zSize] [x size add y size add zSize] [x size add y size add z]]
 
 	] def
-	tris length 1 sub -1 0 {
+	0 1 tris length 1 sub {
 		/i exch def
-		/points tris i get def
 		% i 12 div i 12 div i 12 div setrgbcolor
-		points polygon
+		tris i get polygon
 	} for
 	end
 } def
