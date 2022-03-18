@@ -7,11 +7,11 @@
 realtime srand
 
 /size 500 def
-/cycles 1000 def
+/cycles 360 def
 
 % disable back-face culling (because it doesn't work correctly yet)
-/enable_back_face_culling true def
-% full or wireframe
+/enable_back_face_culling false def
+% full or wireframe (or both)
 /render_method (wireframe) def
 
 size 1.25 div size 3 div translate
@@ -71,11 +71,12 @@ cellsize 150 div setlinewidth
 	/state exch def
 	/y exch def
 	/x exch def
-	state 1 eq { 0 0 0 setrgbcolor [x y 0] cellsize cube } {} ifelse
+	state 1 eq { 55 255 div 63 255 div 81 255 div setrgbcolor [x y 0] cellsize cube } { 223 255 div 187 255 div 177 255 div setrgbcolor [x y 0] cellsize square} ifelse
 	end
 } def
 
 /wipe {
+	/old_color [ currentrgbcolor ] def
 	newpath
 	size neg size neg moveto
 	size size neg lineto
@@ -84,7 +85,7 @@ cellsize 150 div setlinewidth
 	closepath
 	1 1 1 setrgbcolor
 	fill
-	0 0 0 setrgbcolor
+	old_color aload setrgbcolor
 } def
 
 
@@ -93,40 +94,39 @@ cellsize 150 div setlinewidth
 /cPos cPosStart def
 /cAngle [-0.05 0.001 135.001] def
 
-/cSpeed 5 def
+/cSpeed 1 def
 /circleSize 500 def
 
 /timeTaken 0 def
 
 /points [[0 10 0.32] [30 -20 0.16] [0 0 0]] def
 0 1 cycles {
-	/timeTaken realtime def
+	%/timeTaken realtime def
 	/theta exch def
 	/cPos [theta cSpeed mul cos circleSize mul cPosStart 0 get add theta cSpeed mul sin circleSize mul cPosStart 1 get add cPosStart 2 get] def
 	/cAngle [cAngle 0 get cAngle 1 get theta cSpeed mul 90 sub] def
-	draw_axes
+	%draw_axes
 	%0 1 0 setrgbcolor
 	%[200 200 100] 100 0 icosphere
 	%1 0 0 setrgbcolor
 	%[200 200 50] 200 1 icosphere
 	%0 0 1 setrgbcolor
 	%[200 200 0] 300 2 icosphere
-	[0 0 0] 100 cube 
 	% [0 0 0] cellsize gridsize mul square
-	%0 1 gridsize 2 exp 1 sub {
-	%	/i exch def
-	%	/x i gridsize mod cellsize mul def
-	%	/y i gridsize idiv cellsize mul def
-	%	x y current i get cell
-	%} for
-	%0 1 gridsize 2 exp 1 sub {
-	%	/i exch def
-	%	% recalculate
-	%	old i get 0 eq {i dead}{i live} ifelse
-	%} for
-	%/old current [exch aload pop] def
-	/timeTaken realtime timeTaken sub def
-	timeTaken 1000 div ==
+	0 1 gridsize 2 exp 1 sub {
+		/i exch def
+		/x i gridsize mod cellsize mul def
+		/y i gridsize idiv cellsize mul def
+		x y current i get cell
+	} for
+	0 1 gridsize 2 exp 1 sub {
+		/i exch def
+		% recalculate
+		old i get 0 eq {i dead}{i live} ifelse
+	} for
+	/old current [exch aload pop] def
+	%/timeTaken realtime timeTaken sub def
+	%timeTaken 1000 div ==
 	copypage
 } for
 

@@ -243,8 +243,9 @@
 /back_face_cull {
 	1 dict begin
 	/points exch def
-	points midpoint points normal_tri cPos cPos cAngle normal_camera line_plane_intersect
+	% points midpoint points normal_tri cPos cPos cAngle normal_camera line_plane_intersect
 	% points normal_tri 2 get 0 ge
+	true
 	end
 } def
 
@@ -269,7 +270,7 @@
 	newpath
 	points create_polygon
 	closepath
-	(both) render_method eq { gsave 0 0 0 setrgbcolor fill grestore stroke } { (full) render_method eq { fill }{ stroke } ifelse } ifelse
+	(both) render_method eq { gsave fill grestore stroke } { (full) render_method eq { fill }{ stroke } ifelse } ifelse
 	end
 } def
 
@@ -306,7 +307,7 @@
 		/i exch def
 		/points tris i get def
 		% i 12 div i 12 div i 12 div setrgbcolor
-		enable_back_face_culling { points back_face_cull true eq {points polygon} if } { points polygon } ifelse
+		points polygon
 	} for
 	end
 } def
@@ -322,8 +323,8 @@
 	/points1 [[x y z] [x y size add z] [x size add y z]] def
 	/points2 [[x y size add z] [x size add y size add z] [x size add y z]] def
 	
-	enable_back_face_culling { points1 back_face_cull {points1 polygon} if } { points1 polygon } ifelse
-	enable_back_face_culling { points2 back_face_cull {points2 polygon} if } { points2 polygon } ifelse
+	points1 polygon
+	points2 polygon
 
 	end
 } def
