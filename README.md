@@ -11,7 +11,7 @@
 ### 3d stuff:
 
 - ![nested icospheres](midterm/3d/nested_icospheres.gif)
-- ![game of life](midterm/3d/gol.gif)
+- ![game of life](midterm/3d/gol_vacuum_gun.gif)
 
 ### WIP:
 
