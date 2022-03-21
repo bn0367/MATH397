@@ -1,8 +1,57 @@
 \documentclass[12pt]{article}
+
 \usepackage{epsfig}
 \usepackage{graphicx}
+\usepackage{fancyvrb}
+\usepackage{enumitem}
+\usepackage{amsmath}
+
 \usepackage{Bridges_LaTeX_Style}
 
+\setlist{nosep}
+
+\title{3D Rendering in Postscript}
+\author{Ben Newman}
 \begin{document}
-\texttt{HELLO}
+	\maketitle
+	\newpage
+	\tableofcontents
+	\newpage
+	\section{Overview}
+	
+
+	\section{Isometric Projection}
+	The first rendering method I implemented was Isometric Projection. This method is mainly used in technical drawings, as \textbf{PUT STUFF HERE}
+	The method to obtain the proper projection coordinates with Isometric projection is relatively simple, requiring only two matrix multiplications (where one of the matrices is the 3d coordinates, one doesn't change, and the last is based off of the camera angle). The equation I used was: 
+	\begin{align}
+		&a_x=B_{11},a_y=B_{21}\\
+		&\text{Where: }\\&\alpha=\arcsin{\left(\tan{30^\circ}\right)}\text{ (Rotation around the horizontal axis)}\\
+		&\beta=45^\circ\hspace{61pt}\text{ (Rotation around the vertical axis)}\\
+		&c \text{ is the 3d coordinates}\\
+		&B=\left[ {\begin{array}{ccc}
+				1 & 0 & 0 \\
+				0 & \cos\alpha & \sin\alpha \\
+				0 & -\sin\alpha & -\cos\alpha \\
+		\end{array} } \right]
+		\cdot 
+		\left[ {\begin{array}{ccc}
+				\cos\beta & 0 & -\sin\beta \\
+				0 & 1 & 0 \\
+				\sin\beta & 0 & \cos\beta \\
+		\end{array} } \right]
+		\cdot
+		\left[ {\begin{array}{c}
+			c_x \\ c_y \\c_z
+		\end{array} } \right]
+	\end{align}
+	This calculation is relatively light, and for most cases can be run in real time with a few objects. However, because of the way that the points are projected, objects don't scale based off of the camera -- In fact, there is no defined camera location. This limitation prompted me to instead look to Perspective Projection.
+	\section{Perspective Projection}
+	
+	\newpage
+	\section{Code}
+	The following code is the main file of the 3d rendering (i.e. the "library"):
+	{\scriptsize{\VerbatimInput{../3d/3d.eps}}}
+	\newpage
+	The next code is my working file that I use as a testbed. The current version of the code displays a 50x50 grid of a dual glider gun pattern in Conway's Game of Life.
+	{\scriptsize{\VerbatimInput{../3d/rotating_square.eps}}}
 \end{document}

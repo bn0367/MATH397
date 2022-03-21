@@ -245,7 +245,6 @@
 	/points exch def
 	% points midpoint points normal_tri cPos cPos cAngle normal_camera line_plane_intersect
 	% points normal_tri 2 get 0 ge
-	true
 	end
 } def
 
@@ -264,6 +263,7 @@
 /polygon {
 	1 dict begin
 	/points exch def
+	points 0 get 0 get cvi 255 mod 255 div points 0 get 1 get cvi 255 mod 255 div points 0 get 2 get cvi 255 mod 255 div setrgbcolor
 	newpath
 	points create_polygon
 	closepath
@@ -423,6 +423,9 @@
 			tri j newPoint put
 		} for
 		enable_back_face_culling { tri back_face_cull true eq {tri polygon} if } { tri polygon } ifelse
+		points midpoint perspective_project moveto
+		points normal_tri perspective_project lineto
+		stroke
 	} for
 	end
 } def

@@ -1,0 +1,23 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox: 0 0 500 500
+
+% import training set
+(train.eps) run
+% import testing set
+(test.eps) run
+% import NN library
+(perceptron.eps) run
+
+% train
+200 {training_set train} repeat
+/out (out.csv) (w) file def
+out (PassengerId,Survived\n) writestring
+0 1 testing_set length 1 sub {
+	/i exch def
+	/input training_set i get def
+	/calc_output input 1 get output 0 ge {1}{0} ifelse def
+	out id_offset i add (    ) cvs writestring
+	out (,) writestring
+	out calc_output ( ) cvs writestring
+	out (\n) writestring
+} for

@@ -1,0 +1,39 @@
+% MODIFIABLE CONSTS
+% range: 0-1
+/learning_rate .0001 def
+% range: 1-
+/data_size 7 def
+
+
+/weights [data_size {0} repeat] def
+/old_weights [data_size {0} repeat] def
+
+/output {
+	1 dict begin
+	/input exch def
+	/total 0 def
+	0 1 weights length 1 sub {
+		/i exch def
+		/total input i get weights i get mul total add def
+	} for
+	total
+	end
+} def
+
+/train {
+	1 dict begin
+	/ts exch def
+	0 1 ts length 1 sub {
+		/i exch def
+		/input ts i get 1 get def
+		/real_result ts i get 0 get 0 get def
+		/calc_result input output def
+		/old_weights weights [exch aload pop] def
+		0 1 data_size 1 sub {
+			/j exch def
+			/t real_result calc_result sub input j get mul def
+			weights j old_weights j get t learning_rate mul add put
+		} for
+	} for
+	end
+} def
