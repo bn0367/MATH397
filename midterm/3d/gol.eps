@@ -1,0 +1,165 @@
+/gridsize 32 def
+/cellsize size gridsize div def
+cellsize 150 div setlinewidth
+
+% used for GOL: one is used to display, one is used to calculate because all the cells have to be updated at the same time
+/old <<>> def
+/current <<>> def
+
+% postscript doesn't work properly with arrays as dict keys, so i have to combine x+y into a single number with bit length of bit_length
+/bit_length 8 def
+/xNeg 2 bit_length 2 mul 1 add exp def
+/yNeg 2 bit_length 2 mul 2 add exp def
+
+/current old current copy def
+
+/get_neighbors_inf {
+	1 dict begin
+	/pos exch unpack def
+	/neighbors [
+		pos 0 get 1 add pos 1 get pack
+		pos 0 get pos 1 get 1 add pack
+		pos 0 get -1 add pos 1 get pack
+		pos 0 get pos 1 get -1 add pack
+		pos 0 get 1 add pos 1 get 1 add pack
+		pos 0 get 1 add pos 1 get -1 add pack
+		pos 0 get -1 add pos 1 get 1 add pack
+		pos 0 get -1 add pos 1 get -1 add pack
+	] def
+	neighbors
+	end
+} def
+
+/get_live_neighbors_inf {
+	1 dict begin
+	/neighbors exch def
+	/l 0 def
+	0 1 7 {
+		/i exch def
+		/c neighbors i get def
+		/l l old c known {old c get}{0} ifelse add def
+	} for
+	l
+	end
+} def
+
+/get_neighbors {
+	1 dict begin
+	/i exch def
+	end
+	/neighbors [
+		i 1 gridsize add sub i gridsize sub i 1 gridsize sub sub
+		i 1 sub                             i 1 add
+		i 1 gridsize add add i gridsize add i 1 gridsize sub add
+	] def
+	/l 0 def
+	0 1 7 {
+		/j exch def
+		/c neighbors j get def
+		/valid c 0 gt c gridsize gridsize mul lt and def
+		valid {
+			old c get 1 eq {/l l 1 add def} if
+		} if
+	} for
+	l
+} def
+
+/live_inf {
+	1 dict begin
+	/i exch def
+	/neighbors i get_neighbors_inf def
+	/l neighbors get_live_neighbors_inf def
+	l 2 ne l 3 ne and {current begin i 0 store end} if
+	neighbors {
+		/i exch def
+		current i known not {current i 0 put} if
+	} forall
+	end
+} def
+
+/live {
+	1 dict begin
+	/i exch def end
+	/l i get_neighbors def
+
+	/x i gridsize mod cellsize mul def
+	/y i gridsize idiv cellsize mul def
+	l 2 ne l 3 ne and {current i 0 put} {current i 1 put } ifelse
+} def
+
+/dead_inf {
+	1 dict begin
+	/i exch def
+	/neighbors i get_neighbors_inf def
+	/l neighbors get_live_neighbors_inf def
+	l 3 eq {current i 1 put} if
+	l 0 eq {current i undef} if
+	end
+} def
+
+/dead {
+	1 dict begin
+	/i exch def	end
+	
+	/l i get_neighbors def
+
+	/x i gridsize mod cellsize mul def
+	/y i gridsize idiv cellsize mul def
+	l 3 eq {current i 1 put} {current i 0 put} ifelse
+} def
+/cell {
+	3 dict begin
+	/state exch def
+	/y exch def
+	/x exch def
+	state 1 eq { 55 255 div 63 255 div 81 255 div setrgbcolor [x y 0] cellsize cube } if
+	end
+} def
+
+/cell_inf {
+	1 dict begin
+	/i exch def
+	/pos i unpack def
+	/x pos 0 get def
+	/y pos 1 get def
+	current i known current i get 1 eq and {[x cellsize mul y cellsize mul 0] cellsize cube} if
+	end
+} def
+
+% pack two integer coordinates into one integer
+/pack {
+	2 dict begin
+	/y exch def
+	/x exch def
+	/neg_offset y 0 le {yNeg} {0} ifelse x 0 le {xNeg} {0} ifelse add def 
+	x abs 2 bit_length exp mul y abs add neg_offset add
+	end
+} def
+
+% unpack integer into two integer coordinates
+/unpack {
+	1 dict begin
+	/i exch cvi def
+	/yMult 1 def
+	/xMult 1 def
+	/adjusted i def
+	adjusted yNeg ge {/yMult -1 def /adjusted i yNeg sub def} if
+	adjusted xNeg ge {/xMult -1 def /adjusted adjusted xNeg sub def} if
+	/adjusted adjusted cvi def
+	/x adjusted 2 bit_length exp cvi idiv xMult mul def
+	/y adjusted 2 bit_length exp cvi mod yMult mul def
+	[x y]
+	end
+} def
+
+/init {
+	current {
+		/value exch def
+		/i exch def
+		/neighbors i get_neighbors_inf def
+		neighbors {
+			/i exch def
+			current i known not {current i 0 put} if
+		} forall
+	} forall
+} def

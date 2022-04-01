@@ -1,0 +1,152 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox: 0 0 500 500
+% import 3d lib
+(3d_old.eps) run
+
+
+realtime srand
+
+/size 750 def
+/cycles 1080 def
+
+% disable back-face culling (because it doesn't work correctly yet)
+/enable_back_face_culling false def
+% full or wireframe (or both)
+/render_method (wireframe) def
+
+size 3 div size 3 div translate
+0 -250 translate
+
+/gridsize 50 def
+/cellsize size gridsize div def
+cellsize 150 div setlinewidth
+
+% used for GOL: one is used to display, one is used to calculate because all the cells have to be updated at the same time
+/old [
+
+] def
+/current old [exch aload pop] def
+/heatmap [gridsize gridsize mul {0} repeat] def
+
+/getneighbors {
+	1 dict begin
+	/i exch def
+	end
+	/neighbors [
+		i 1 gridsize add sub i gridsize sub i 1 gridsize sub sub
+		i 1 sub                             i 1 add
+		i 1 gridsize add add i gridsize add i 1 gridsize sub add
+	] def
+	/l 0 def
+	0 1 7 {
+		/j exch def
+		/c neighbors j get def
+		/valid c 0 gt c gridsize gridsize mul lt and def
+		valid {
+			old c get 1 eq {/l l 1 add def} if
+		} if
+	} for
+	l
+} def
+
+/live {
+	1 dict begin
+	/i exch def end
+	/l i getneighbors def
+
+	/x i gridsize mod cellsize mul def
+	/y i gridsize idiv cellsize mul def
+	l 2 ne l 3 ne and {current i 0 put} {current i 1 put } ifelse
+} def
+
+/dead {
+	1 dict begin
+	/i exch def	end
+	
+	/l i getneighbors def
+
+	/x i gridsize mod cellsize mul def
+	/y i gridsize idiv cellsize mul def
+	l 3 eq {current i 1 put} {current i 0 put} ifelse
+} def
+/cell {
+	3 dict begin
+	/state exch def
+	/y exch def
+	/x exch def
+	state 1 eq { 55 255 div 63 255 div 81 255 div setrgbcolor [x y 0] cellsize cube } if
+	end
+} def
+
+/wipe {
+	/old_color [ currentrgbcolor ] def
+	newpath
+	size neg size neg moveto
+	size size neg lineto
+	size size lineto
+	size neg size lineto
+	closepath
+	1 1 1 setrgbcolor
+	fill
+	old_color aload setrgbcolor
+} def
+
+
+% custom camera offsets for this example
+/cPosStart [0 0 0.5] def
+/cPos cPosStart def
+/cAngle [-0.05 0.001 135.001] def
+
+/cSpeed .5 def
+/circleSize 250 def
+
+/timeTaken 0 def
+
+
+/points cycles array def
+0 1 cycles {
+	/timeTaken realtime def
+	/theta exch 1 add def
+	/cPos [theta cSpeed mul cos circleSize mul cPosStart 0 get add theta cSpeed mul sin circleSize mul cPosStart 1 get add cPosStart 2 get] def
+	/cAngle [cAngle 0 get cAngle 1 get theta cSpeed mul 90 sub] def
+	%draw_axes
+	%0 1 0 setrgbcolor
+	%[200 200 100] 100 0 icosphere
+	%1 0 0 setrgbcolor
+	/t theta 1 mul def
+	/xt t sin 125 mul 25 sub def % t 1.6 24 t mul cos mul sub def
+	/yt t cos 125 mul 25 sub def
+	/z t 100 sub zMult mul 3 div def
+	points theta 1 sub [xt yt z] put
+	newpath
+	points 0 get perspective_project moveto
+	1 1 theta 1 sub {
+		/j exch def
+		points j get perspective_project lineto
+	} for
+	stroke
+	[-25 -25 z zMult div 0.9 mul] 100 1 icosphere
+	%0 0 1 setrgbcolor
+	%[200 200 0] 300 2 icosphere
+	% [0 0 0] cellsize gridsize mul square
+	%223 255 div 187 255 div 177 255 div setrgbcolor [0 0 0] cellsize gridsize mul square
+	%0 1 gridsize 2 exp 1 sub {
+	%	/i exch def
+	%	/x i gridsize mod cellsize mul def
+	%	/y i gridsize idiv cellsize mul def
+	%	x y current i get cell
+	%} for
+	%theta 2 mod 1 eq {
+	%	0 1 gridsize 2 exp 1 sub {
+	%		/i exch def
+	%		% recalculate
+	%		old i get 0 eq {i dead}{i live} ifelse
+	%	} for
+	%	/old current [exch aload pop] def
+	%} if
+	/timeTaken realtime timeTaken sub def
+	timeTaken 1000 div ==
+	copypage
+} for
+
+%EOF

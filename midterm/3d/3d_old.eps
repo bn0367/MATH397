@@ -1,0 +1,449 @@
+% MODIFIABLE CONSTS
+% whether or not to use back-face culling
+/enable_back_face_culling true def
+% whether to draw full tris or just wireframe versions
+/render_method (wireframe) def
+% the z scale is super messed up, so you can change this if you want but it will break
+% this constant should scale z to the same scale as the toher two axes
+/zMult 0.0016 def
+
+
+% why is atan in postscript but not tan?
+/tan {dup sin exch cos div} def
+
+/atan2 {
+	2 dict begin
+	% atan2 implementation because postscript doesn't have one
+	/y exch def
+	/x exch def
+	x 0 gt { y x atan }{
+		y 0 gt y 0 eq or x 0 lt and { y x atan 180 add }{
+			x 0 lt y 0 lt and { y x atan 180 sub }{
+				x 0 eq y 0 gt and { 90 }{
+					x 0 eq y 0 lt and { -90 } { (undefined atan2 result) error } ifelse
+				} ifelse
+			} ifelse
+		} ifelse
+	} ifelse
+	end
+} def
+
+% arbitrary amount of digits
+/pi 3.141592653 def
+
+/identity {
+	1 dict begin
+	/n exch def
+	/m [n n mul {0.0} repeat] def
+	0 n 1 add n n mul 1 sub {
+		m exch 1.0 put
+	} for
+	m
+	end
+} def
+
+/vsub {
+	2 dict begin
+	/b exch def
+	/a exch def
+
+	/result a length array def
+	0 1 a length 1 sub {
+		/i exch def
+		result i a i get b i get sub put
+	} for
+	result
+	end
+} def
+
+/vadd {
+	2 dict begin
+	/b exch def
+	/a exch def
+
+	/result a length array def
+	0 1 a length 1 sub {
+		/i exch def
+		result i a i get b i get add put
+	} for
+	result
+	end
+} def
+
+/scalar {
+	1 dict begin
+	/n exch def
+	/a exch def
+	/result [a length {0.0} repeat] def
+	0 1 a length 1 sub {
+		/i exch def
+		result i a i get n mul put
+	} for
+	result
+	end
+} def
+
+/matrix_multiply {
+	3 dict begin
+
+	/m exch def
+	/b exch def
+	/a exch def
+
+	/n b length m idiv def
+	/l a length m idiv def
+
+	/result [n l mul {0.0} repeat] def
+	0 1 n l mul 1 sub {
+		/i exch def
+		/row a i m m n eq {idiv}{mod} ifelse l mul m getinterval def
+		/col m array def
+		0 1 m 1 sub {
+			/j exch def
+			col j b j n mul i n mod add get put
+		} for
+		/c 0.0 def
+		0 1 m 1 sub {
+			/j exch def
+			/c c row j get col j get mul add def
+		} for
+		result i c put
+	} for
+	result
+	end
+} def
+
+/iso_rot_matrix {
+	1 dict begin
+	/n exch def
+	[1 0 0 0 angle2 tan arcsin cos angle2 tan arcsin sin 0 angle2 tan arcsin sin neg angle2 tan arcsin cos] [n cos 0 n sin neg 0 1 0 n sin 0 n cos] 3 matrix_multiply
+	end
+} def
+
+/iso_project {
+	1 dict begin
+	/point exch def
+	/newPoint angle iso_rot_matrix point 3 matrix_multiply def
+	newPoint 0 get
+	newPoint 1 get
+	end
+} def
+
+/cPos [0 0 .5] def
+% if any of cAngle are 0, things go very wrong
+/cAngle [0.001 0.001 135.001] def
+/displaySurface [0.001 0.001 .5] def
+
+/perspective_rot_matrix {
+	[1 0 0 0 cAngle 0 get cos cAngle 0 get sin 0 cAngle 0 get sin neg cAngle 0 get cos] [cAngle 1 get cos 0 cAngle 1 get sin neg 0 1 0 cAngle 1 get sin 0 cAngle 1 get cos] 3 matrix_multiply [cAngle 2 get cos cAngle 2 get sin 0 cAngle 2 get sin neg cAngle 2 get cos 0 0 0 1] 3 matrix_multiply
+} def
+
+/perspective_project {
+	1 dict begin
+	/point exch def
+	/cPoint cPos point vsub def
+	/newPoint perspective_rot_matrix cPoint 3 matrix_multiply def
+	% x
+	displaySurface 2 get newPoint 2 get div newPoint 0 get mul displaySurface 0 get add
+	% y
+	displaySurface 2 get newPoint 2 get div newPoint 1 get mul displaySurface 1 get add
+	end
+} def
+
+% why can I not do mod with decimals
+/better_mod {
+	2 dict begin
+	/n exch def
+	/m exch def
+	m m n div truncate n mul sub
+	end
+} def
+
+/dot_product {
+	2 dict begin
+	/b exch def
+	/a exch def
+	/result 0 def
+	0 1 a length 1 sub {
+		/i exch def
+		/result a i get b i get mul result add def
+	} for
+	result
+	end
+} def
+
+/normal_tri {
+	1 dict begin
+	/points exch def
+	/A points 1 get points 0 get vsub def
+	/B points 2 get points 0 get vsub def
+	/normal [
+		A 1 get B 2 get zMult div mul A 2 get zMult div B 1 get mul sub
+		A 2 get zMult div B 0 get mul A 0 get B 2 get zMult div mul sub
+		A 0 get B 1 get mul A 1 get B 0 get mul sub
+	] def
+	normal
+	end
+} def
+
+/midpoint {
+	1 dict begin
+	/points exch def
+	/total [points 0 get length {0} repeat] def
+	0 1 points length 1 sub {
+		/i exch def
+		0 1 points i get length 1 sub {
+			/j exch def
+			total j total j get points i get j get add put
+		} for
+	} for
+	0 1 total length 1 sub {
+		/i exch def
+		total i total i get points length div put
+	} for
+	total
+	end
+} def
+
+/normal_camera {
+	/cPos2 [cPos 1 get neg cPos 0 get 0] def
+	/normal [
+		cPos 1 get cPos2 2 get zMult div mul cPos 2 get zMult div cPos2 1 get mul sub
+		cPos 2 get zMult div cPos2 0 get mul cPos 0 get cPos2 2 get zMult div mul sub
+		cPos 0 get cPos2 1 get mul cPos 1 get cPos2 0 get mul sub
+	] def
+	normal
+} def
+
+% from https://stackoverflow.com/questions/5666222/3d-line-plane-intersection
+/line_plane_intersect {
+	4 dict begin
+	/plane_normal exch def
+	/plane_point exch def
+	/line_point1 exch def
+	/line_point2 exch def
+
+	/u line_point2 line_point1 vsub def
+	/dot plane_normal u dot_product def
+	dot abs zMult ge {
+		/w line_point1 plane_point vsub def
+		/fac plane_normal w dot_product neg dot div def
+		/u u fac scalar def
+		false
+	} {
+		false
+	} ifelse
+	end
+} def
+
+/back_face_cull {
+	1 dict begin
+	/points exch def
+	% points midpoint points normal_tri cPos cPos cAngle normal_camera line_plane_intersect
+	% points normal_tri 2 get 0 ge
+	end
+} def
+
+% note to me: pay attention to winding order
+/create_polygon {
+	1 dict begin
+	/points exch def
+	points 0 get perspective_project moveto
+	1 1 points length 1 sub {
+		/i exch def
+		/point points i get def
+		point perspective_project lineto
+	} for	
+	end
+} def
+
+/polygon {
+	1 dict begin
+	/points exch def
+	% points 0 get 0 get cvi 255 mod 255 div points 0 get 1 get cvi 255 mod 255 div points 0 get 2 get cvi 255 mod 255 div setrgbcolor
+	newpath
+	points create_polygon
+	closepath
+	(both) render_method eq { gsave fill grestore stroke } { (full) render_method eq { fill }{ stroke } ifelse } ifelse
+	end
+} def
+
+/cube {
+	2 dict begin
+	/size exch def
+	/pos exch def
+	/x pos 0 get def
+	/y pos 1 get def
+	/z pos 2 get def
+	/zSize size zMult mul def
+	/tris [
+		% top tris
+		[[x y zSize] [x size add y zSize] [x y size add zSize]]
+		[[x y size add zSize] [x size add y zSize] [x size add y size add zSize]]
+		% bottom tris
+		[[x y z] [x y size add z] [x size add y z]]
+		[[x y size add z] [x size add y size add z] [x size add y z]]
+		% front tris
+		[[x y z] [x size add y z] [x y zSize]]
+		[[x y zSize] [x size add y z] [x size add y zSize]]
+		% left tris
+		[[x y zSize] [x y size add z] [x y z]]
+		[[x y zSize] [x y size add z] [x y size add zSize]]
+		% right tris
+		[[x size add y size add z] [x size add y zSize] [x size add y size add zSize]]
+		[[x size add y z] [x size add y size add z] [x size add y zSize]]
+		% back tris
+		[[x y size add z] [x y size add zSize] [x size add y size add z]]
+		[[x y size add zSize] [x size add y size add zSize] [x size add y size add z]]
+
+	] def
+	0 1 tris length 1 sub {
+		/i exch def
+		% i 12 div i 12 div i 12 div setrgbcolor
+		tris i get polygon
+	} for
+	end
+} def
+
+/square {
+	2 dict begin
+	/size exch def
+	/pos exch def
+	/x pos 0 get def
+	/y pos 1 get def
+	/z pos 2 get def
+	/zSize size zMult mul def
+	/points1 [[x y z] [x y size add z] [x size add y z]] def
+	/points2 [[x y size add z] [x size add y size add z] [x size add y z]] def
+	
+	points1 polygon
+	points2 polygon
+
+	end
+} def
+% algorithm from http://blog.andreaskahler.com/2009/06/creating-icosphere-mesh-in-code.html
+/icosphere {
+	2 dict begin
+	/subdivisions exch def
+	/radius exch def
+	/center exch def
+
+	/vertices 12 array def
+	/faces 20 array def
+	/to_unit_sphere {
+		1 dict begin
+		/point exch def
+		/length point 0 get 2 exp point 1 get 2 exp add point 2 get 2 exp add sqrt def
+		[point 0 get length div point 1 get length div point 2 get length div]
+		end
+	} def
+
+	/middle {
+		2 dict begin
+		/point2 exch def
+		/point1 exch def
+		[point1 0 get point2 0 get add 2 div point1 1 get point2 1 get add 2 div point1 2 get point2 2 get add 2 div]
+		end
+	} def
+
+	/t 5 sqrt 1 add 2 div def
+
+	vertices 0 [-1 t 0] to_unit_sphere put
+	vertices 1 [1 t 0] to_unit_sphere put
+	vertices 2 [-1 t neg 0] to_unit_sphere put
+	vertices 3 [1 t neg 0] to_unit_sphere put
+
+	vertices 4 [0 -1 t] to_unit_sphere put
+	vertices 5 [0 1 t] to_unit_sphere put
+	vertices 6 [0 -1 t neg] to_unit_sphere put
+	vertices 7 [0 1 t neg] to_unit_sphere put
+
+	vertices 8 [t 0 -1] to_unit_sphere put
+	vertices 9 [t 0 1] to_unit_sphere put
+	vertices 10 [t neg 0 -1] to_unit_sphere put
+	vertices 11 [t neg 0 1] to_unit_sphere put
+
+	faces 0 [vertices 0 get vertices 11 get vertices 5 get] put
+	faces 1 [vertices 0 get vertices 5 get vertices 1 get] put
+	faces 2 [vertices 0 get vertices 1 get vertices 7 get] put
+	faces 3 [vertices 0 get vertices 7 get vertices 10 get] put
+	faces 4 [vertices 0 get vertices 10 get vertices 11 get] put
+
+	faces 5 [vertices 1 get vertices 5 get vertices 9 get] put
+	faces 6 [vertices 5 get vertices 11 get vertices 4 get] put
+	faces 7 [vertices 11 get vertices 10 get vertices 2 get] put
+	faces 8 [vertices 10 get vertices 7 get vertices 6 get] put
+	faces 9 [vertices 7 get vertices 1 get vertices 8 get] put
+
+	faces 10 [vertices 3 get vertices 9 get vertices 4 get] put
+	faces 11 [vertices 3 get vertices 4 get vertices 2 get] put
+	faces 12 [vertices 3 get vertices 2 get vertices 6 get] put
+	faces 13 [vertices 3 get vertices 6 get vertices 8 get] put
+	faces 14 [vertices 3 get vertices 8 get vertices 9 get] put
+
+	faces 15 [vertices 4 get vertices 9 get vertices 5 get] put
+	faces 16 [vertices 2 get vertices 4 get vertices 11 get] put
+	faces 17 [vertices 6 get vertices 2 get vertices 10 get] put
+	faces 18 [vertices 8 get vertices 6 get vertices 7 get] put
+	faces 19 [vertices 9 get vertices 8 get vertices 1 get] put
+
+	0 1 subdivisions 1 sub {
+		/faces2 faces length 4 mul cvi array def
+		/faceIdx 0 def
+		0 1 faces length 1 sub {
+			/i exch def
+			/face faces i get def
+			/a face 0 get def
+			/b face 1 get def
+			/c face 2 get def
+			/m1 a b middle def
+			/m2 b c middle def
+			/m3 c a middle def
+			faces2 faceIdx [a m1 m3] put
+			/faceIdx faceIdx 1 add def
+			faces2 faceIdx [b m2 m1] put
+			/faceIdx faceIdx 1 add def
+			faces2 faceIdx [c m3 m2] put
+			/faceIdx faceIdx 1 add def
+			faces2 faceIdx [m1 m2 m3] put
+			/faceIdx faceIdx 1 add def
+		} for
+		/faces faces2 [exch aload pop] def
+	} for
+	0 1 faces length 1 sub {
+		/i exch def
+		/tri faces i get def
+		0 1 2 {
+			/j exch def
+			/point tri j get to_unit_sphere def
+			/newPoint [point 0 get radius mul center 0 get add point 1 get radius mul center 1 get add point 2 get radius mul center 2 get add zMult mul] def
+			tri j newPoint put
+		} for
+		enable_back_face_culling { tri back_face_cull true eq {tri polygon} if } { tri polygon } ifelse
+		% points midpoint perspective_project moveto
+		% points normal_tri perspective_project lineto
+		stroke
+	} for
+	end
+} def
+
+/draw_axes {
+	newpath
+	[0 0 0] perspective_project moveto
+	[1000 0 0] perspective_project lineto
+	closepath
+	1 0 0 setrgbcolor
+	stroke
+	newpath
+	[0 0 0] perspective_project moveto
+	[0 1000 0] perspective_project lineto
+	closepath
+	0 1 0 setrgbcolor
+	stroke
+	newpath
+	[0 0 0] perspective_project moveto
+	[0 0 -1000] perspective_project lineto
+	closepath
+	0 0 1 setrgbcolor
+	stroke
+} def
