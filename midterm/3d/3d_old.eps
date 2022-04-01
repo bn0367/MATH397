@@ -120,6 +120,9 @@
 	end
 } def
 
+/angle2 35.264 def
+/angle 45 def
+
 /iso_project {
 	1 dict begin
 	/point exch def
@@ -257,12 +260,38 @@
 	end
 } def
 
+/create_polygon_iso {
+	1 dict begin
+	/points exch def
+	/fp points 0 get def
+	fp 2 fp 2 get zMult div put
+	points 0 get iso_project moveto
+	1 1 points length 1 sub {
+		/i exch def
+		/point points i get def
+		point 2 point 2 get zMult div put
+		point iso_project lineto
+	} for	
+	end
+} def
+
 /polygon {
 	1 dict begin
 	/points exch def
 	% points 0 get 0 get cvi 255 mod 255 div points 0 get 1 get cvi 255 mod 255 div points 0 get 2 get cvi 255 mod 255 div setrgbcolor
 	newpath
 	points create_polygon
+	closepath
+	(both) render_method eq { gsave fill grestore stroke } { (full) render_method eq { fill }{ stroke } ifelse } ifelse
+	end
+} def
+
+/polygon_iso {
+	1 dict begin
+	/points exch def
+	% points 0 get 0 get cvi 255 mod 255 div points 0 get 1 get cvi 255 mod 255 div points 0 get 2 get cvi 255 mod 255 div setrgbcolor
+	newpath
+	points create_polygon_iso
 	closepath
 	(both) render_method eq { gsave fill grestore stroke } { (full) render_method eq { fill }{ stroke } ifelse } ifelse
 	end
@@ -301,6 +330,43 @@
 		/i exch def
 		% i 12 div i 12 div i 12 div setrgbcolor
 		tris i get polygon
+	} for
+	end
+} def
+
+/cube_iso {
+	2 dict begin
+	/size exch def
+	/pos exch def
+	/x pos 0 get def
+	/y pos 1 get def
+	/z pos 2 get def
+	/zSize size zMult mul def
+	/tris [
+		% top tris
+		[[x y zSize] [x size add y zSize] [x y size add zSize]]
+		[[x y size add zSize] [x size add y zSize] [x size add y size add zSize]]
+		% bottom tris
+		[[x y z] [x y size add z] [x size add y z]]
+		[[x y size add z] [x size add y size add z] [x size add y z]]
+		% front tris
+		[[x y z] [x size add y z] [x y zSize]]
+		[[x y zSize] [x size add y z] [x size add y zSize]]
+		% left tris
+		[[x y zSize] [x y size add z] [x y z]]
+		[[x y zSize] [x y size add z] [x y size add zSize]]
+		% right tris
+		[[x size add y size add z] [x size add y zSize] [x size add y size add zSize]]
+		[[x size add y z] [x size add y size add z] [x size add y zSize]]
+		% back tris
+		[[x y size add z] [x y size add zSize] [x size add y size add z]]
+		[[x y size add zSize] [x size add y size add zSize] [x size add y size add z]]
+
+	] def
+	0 1 tris length 1 sub {
+		/i exch def
+		% i 12 div i 12 div i 12 div setrgbcolor
+		tris i get polygon_iso
 	} for
 	end
 } def

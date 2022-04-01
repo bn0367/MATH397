@@ -14,8 +14,7 @@ realtime srand
 % full or wireframe (or both)
 /render_method (wireframe) def
 
-size 3 div size 3 div translate
-0 -250 translate
+71 0 translate
 
 /gridsize 50 def
 /cellsize size gridsize div def
@@ -113,19 +112,19 @@ cellsize 150 div setlinewidth
 	%0 1 0 setrgbcolor
 	%[200 200 100] 100 0 icosphere
 	%1 0 0 setrgbcolor
-	/t theta 1 mul def
-	/xt t sin 125 mul 25 sub def % t 1.6 24 t mul cos mul sub def
-	/yt t cos 125 mul 25 sub def
-	/z t 100 sub zMult mul 3 div def
-	points theta 1 sub [xt yt z] put
-	newpath
-	points 0 get perspective_project moveto
-	1 1 theta 1 sub {
-		/j exch def
-		points j get perspective_project lineto
-	} for
-	stroke
-	[-25 -25 z zMult div 0.9 mul] 100 1 icosphere
+	%/t theta 1 mul def
+	%/xt t sin 125 mul 25 sub def % t 1.6 24 t mul cos mul sub def
+	%/yt t cos 125 mul 25 sub def
+	%/z t 100 sub zMult mul 3 div def
+	%points theta 1 sub [xt yt z] put
+	%newpath
+	%points 0 get perspective_project moveto
+	%1 1 theta 1 sub {
+	%	/j exch def
+	%	points j get perspective_project lineto
+	%} for
+	%stroke
+	%[-25 -25 z zMult div 0.9 mul] 100 1 icosphere
 	%0 0 1 setrgbcolor
 	%[200 200 0] 300 2 icosphere
 	% [0 0 0] cellsize gridsize mul square
@@ -144,6 +143,10 @@ cellsize 150 div setlinewidth
 	%	} for
 	%	/old current [exch aload pop] def
 	%} if
+	% create a cube of size 10
+	[0 0 0] 100 cube_iso
+
+	stroke
 	/timeTaken realtime timeTaken sub def
 	timeTaken 1000 div ==
 	copypage
