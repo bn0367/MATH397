@@ -8,10 +8,18 @@
 /zMult 0.0016 def
 
 % used for z-buffer: the range of depths
-/near 1 def
+/near 0.1 def
 /far 100 def
 % also for z-buffer: amount of bits to use
 /bits 8 def
+% fov
+/fov 90 def
+% aspect ratio
+/aspect 1 def
+% assumes square camera viewpoint
+/size 500 def
+
+%------------------------------ begin program ---------------------------------%
 
 % why is atan in postscript but not tan?
 /tan {dup sin exch cos div} def
@@ -171,30 +179,15 @@
 	end
 } def
 
-/camera4x4 {
+/rot_matrix {
+	/z cAngle 2 get def
+	/y cAngle 1 get def
+	/x cAngle 0 get def
 	[
-		cPos 0 get 0 0 0
-	 	0 cPos 1 get 0 0
-		0 0 cPos 2 get 0
-		0 0 0 1	
-	] [
-		1 0 0 0
-		0 cAngle 0 get cos cAngle 0 get sin neg 0
-		0 cAngle 0 get sin cAngle 0 get cos 0
-		0 0 0 1
-	] 4 matrix_multiply
-	[
-		cAngle 1 get cos 0 cAngle 1 get sin 0
-		0 1 0 0
-		cAngle 1 get sin neg 0 cAngle 1 get cos 0
-		0 0 0 1
-	] 4 matrix_multiply
-	[
-		cAngle 2 get cos cAngle 2 get sin neg 0 0
-		cAngle 2 get sin cAngle 2 get cos 0 0
-		0 0 1 0
-		0 0 0 1
-	] 4 matrix_multiply
+		z cos y cos mul     z cos y sin mul x sin mul z cos x sin mul sub     z cos y sin mul x cos mul z sin x sin mul sub
+		z sin y cos mul     z sin y sin mul x sin mul z cos x cos mul add     z sin y sin mul x cos mul z sin x cos mul sub
+		y sin neg           z sin y cos mul                                   y cos x cos mul 
+	]
 } def
 
 % projection (^) * view (cPos) * model (pos)
@@ -209,6 +202,65 @@
 	displaySurface 2 get newPoint 2 get 0.1 add div newPoint 0 get mul displaySurface 0 get add
 	% y
 	displaySurface 2 get newPoint 2 get 0.1 add div newPoint 1 get mul displaySurface 1 get add
+	end
+} def
+% https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/opengl-perspective-projection-matrix
+/right size def
+/left 0 def
+/top size def
+/bottom 0 def
+
+/opengl_perspective_scale {
+	/scale fov 0.5 mul pi mul tan near mul def
+	/right aspect scale mul def
+	/left right neg def
+	/top scale def
+	/bottom top neg def
+} def
+
+/opengl_frustum {
+	[
+		2 near mul right 1 sub div 0 0 0
+	 	0 2 near mul top bottom sub div 0 0
+		right left add right left sub div top bottom add top bottom sub div far near add neg far near sub div -1
+		0 0 -2 far mul near mul far near sub div 0
+	]
+} def
+
+/opengl_mult_point {
+	2 dict begin
+	/m exch def
+	/oldPoint exch def
+	/point oldPoint def% rot_matrix 3 matrix_multiply def
+	/x point 0 get def
+	/y point 1 get def
+	/z point 2 get def
+	/w x m 0 3 x44get mul y m 1 3 x44get mul add z m 2 3 x44get mul add m 3 3 x44get add def
+	w ==
+	% x y z
+	/nPos  [
+		x m 0 0 x44get mul y m 1 0 x44get mul add z m 2 0 x44get mul add m 3 0 x44get add w 0 eq {1}{w} ifelse div
+		x m 0 1 x44get mul y m 1 1 x44get mul add z m 2 1 x44get mul add m 3 1 x44get add w 0 eq {1}{w} ifelse div
+		x m 0 2 x44get mul y m 1 2 x44get mul add z m 2 2 x44get mul add m 3 2 x44get add w 0 eq {1}{w} ifelse div
+	] def
+	nPos
+	end
+} def
+
+/opengl_to_screen {
+	1 dict begin
+	/point exch def
+	point 0 get 1 add 0.5 mul size mul
+	point 1 get 1 add 0.5 mul size mul
+	end
+} def
+
+/x44get {
+	3 dict begin
+	/y exch def
+	/x exch def
+	/m exch def
+	m y 4 mul x add get
 	end
 } def
 
@@ -320,14 +372,13 @@
 	end
 } def
 
-% note to me: pay attention to winding order
 /create_polygon {
 	1 dict begin
 	/points exch def
-	points 0 get perspective_project moveto
+	points 0 get opengl_frustum opengl_mult_point opengl_to_screen moveto
 	1 1 points length 1 sub {
 		/i exch def
-		points i get perspective_project lineto
+		points i get opengl_frustum opengl_mult_point opengl_to_screen lineto
 	} for	
 	end
 } def
@@ -376,9 +427,7 @@
 		/i exch def
 		% i 12 div i 12 div i 12 div setrgbcolor
 		%tris i get 0 get 2 get get_depth 0.1 mul 10 lt
-		/np tris i get midpoint def
-		np 2 np 2 get zMult div put
-		np cPos dist size div get_depth 0 gt {tris i get polygon} if
+		tris i get polygon
 	} for
 	end
 } def
@@ -541,3 +590,10 @@
 	0 0 1 setrgbcolor
 	stroke
 } def
+
+/init {
+	opengl_perspective_scale
+	(Loaded 3d module by Ben Newman) =
+} def
+
+init
