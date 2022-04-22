@@ -157,7 +157,7 @@
 
 /cPos [0 0 .5] def
 % if any of cAngle are 0, things go very wrong
-/cAngle [0.001 0.001 135.001] def
+/cAngle [0 0 0] def
 /displaySurface [0.001 0.001 .5] def
 
 /perspective_rot_matrix {
@@ -211,7 +211,7 @@
 /bottom 0 def
 
 /opengl_perspective_scale {
-	/scale fov 0.5 mul pi mul tan near mul def
+	/scale fov 0.5 mul pi 180 mul mul tan near mul def
 	/right aspect scale mul def
 	/left right neg def
 	/top scale def

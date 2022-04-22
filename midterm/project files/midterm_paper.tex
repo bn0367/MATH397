@@ -22,7 +22,7 @@
 	\maketitle
 	\newpage
 	\section{Overview}
-	For my midterm project, I created a 3d rendering library in only Postscript, as well as some cool 3d renders (using the library). It still needs a lot of work, but it is certainly capable of creating simple renders with simple objects as well as slightly more sophisticated animations using Ghostscript. I started this library out with isometric rendering, and then moved on to perspective rendering, which is where I still am. This project has helped me understand 3d rendering much better, and I hope to continue this project at least through the semester, if not further. It also helped me remember and learn more about linear algebra, even requiring me to implement my own matrix multiplication in Postscript.
+	For my midterm project, I created a 3d rendering library in only Postscript, as well as some cool 3d renders (using the library). It still needs a lot of work, but it is certainly capable of creating simple renders with simple objects as well as slightly more sophisticated animations using Ghostscript and a Postscript command called copypage. I started this library out with isometric rendering, and then moved on to perspective rendering, which is where I still am. This project has helped me understand 3d rendering much better, and I hope to continue this project at least through the semester, if not further. It also helped me remember and learn more about linear algebra, even requiring me to implement my own matrix multiplication in Postscript.
 	\section{Isometric Projection}
 	The first rendering method I implemented was Isometric Projection. This method is mainly used in technical drawings, as it makes angles much easier to draw for the most part, simplifying the process.
 	The method to obtain the proper projection coordinates with Isometric projection is relatively simple, requiring only two matrix multiplications (where one of the matrices is the 3d coordinates, one doesn't change, and the last is based off of the camera angle). The equation I used was: 
@@ -68,16 +68,22 @@
 		\\
 	\end{align*}
 	This perspective rendering allowed me to rotate and move the camera around, which let me create renders like this (the animation will only play in a javascript-enabled pdf viewer):\\
-	\begin{align*}\animategraphics[loop,controls,width=100pt]{15}{animations/GOL/frame-}{0}{1}\end{align*}\\
+	\begin{align*}\animategraphics[loop,autoplay,width=100pt]{15}{animations/GOL/frame-}{0}{360}\end{align*}\\
 	With the previous isometric technique, this sort of rotation would not have been feasible, or looked nearly as normal.
+	\section{Rendering}
+	Once I had decided on what form of projection I wanted to use, I moved on to implementing different ways to actually draw the objects, once I knew where to draw them. I started out of course, with a simple wireframe, as is seen in the isometric section above. From there, it was simple enough to fill in each tri with a solid color. This came with complications, however, as it was rendering ever tri whether or not there was another one in front of it, in an arbitrary order with no respect to the camera position or angle.\\After that, I started working on creating methods to draw an entire object all at once without having to pre-define all of the vertices and edges. Currently, I have the option to create a cube, a flat plane, or a sphere (in the form of an icosphere). These options, plus of course being able to draw arbitrary points and tris allows me to make quite a few more complex scenes and objects.
 	\section{Drawbacks}
 	With the current version of the code, there is no proper support for any form of culling (i.e. removing faces behind other faces, or faces that aren't within the viewport). And, unfortunately, due to that, I also cannot realistically implement any sort of lighting, shading, or non-uniform solid coloring because the faces on the back of objects will show through in front of the front faces, which causes renders to not make sense or look impossible. The culling will also significantly speed up the rendering process, as in many cases around half of the faces that are being rendered do not have to be rendered at all.\\The one bug I am aware of in my library code is the fact that all of the Z values have to be scaled down by 0.0016 -- I'm sure there's a simple fix/reason, but I haven't been able to find it yet. It's not too big of an issue, but does cause bugs frequently.\\Another frequent bug I encounter is when objects are drawn very close to the camera -- they aren't clipped, so they sometimes render over the camera in very wild lines that extend across the screen.
 	\section{Next Steps}
-	I plan to continue to develop this 3d renderer as long as I can -- I certainly hope to at least overcome the obstacles outlined in the drawbacks section. What I'm currently working on is a proper depth buffer, which is the first step to being able to have culling (at least depth based culling). Once that's been completed, the next step is to implement some simple form of lighting, to be able to differentiate between faces without having to render the edges between them. This will open up many opportunities for much more interesting renders, although it will significantly decrease performance. 
-	\section{Code and examples}
+	I plan to continue to develop this 3d renderer as long as I can -- I certainly hope to at least overcome the obstacles outlined in the drawbacks section. What I'm currently working on is a proper depth buffer, which is the first step to being able to have culling (at least depth based culling). I also need to make sure that the normal vectors that I'm creating are actually correct. Once that's been completed, the next step is to implement some simple form of lighting, to be able to differentiate between faces without having to render the edges between them. This will open up many opportunities for much more interesting renders, although it will significantly decrease performance. I also hope to increase performance in other ways -- maybe by changing my matrix multiplication, or pre-multiplying matrices. 
+	\newpage
+	\section{Code, references, and examples}
+	\begin{align*}\text{I have adhered to the honor code in this assignment.}\end{align*}
+	{[1]} Casselman, Bill. \textit{Mathematical Illustrations: A Manual of Geometry and Postscript.} Cambridge University Press, 2005.\\
+	{[2]} Murran, Ghirgham. \textit{Perspective Science - Theory and Application.} 2010.\\\\
 	The following link is the main file of the 3d rendering (i.e. the "library"):
 	\href{https://gist.github.com/bn0367/3b670a37fc172aa1ae74cbbafd8cbb5a}{3d.eps}\\
 	A few cool examples: 
-	\begin{align*}\animategraphics[loop,controls,width=250pt]{30}{animations/icosphere_sin/frame-}{0}{1}\end{align*}\\
-	\begin{align*}\animategraphics[loop,controls,width=250pt]{30}{animations/icospheres/frame-}{0}{1}\end{align*}\\
+	\begin{align*}\animategraphics[loop,autoplay,width=250pt]{30}{animations/icosphere_sin/frame-}{0}{360}\end{align*}\\
+	\begin{align*}\animategraphics[loop,autoplay,height=250pt]{30}{animations/icospheres/frame-}{0}{360}\end{align*}\\
 \end{document}

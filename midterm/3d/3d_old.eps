@@ -1,3 +1,5 @@
+/pi 3.141592653 def
+
 % MODIFIABLE CONSTS
 % whether or not to use back-face culling
 /enable_back_face_culling true def
@@ -5,7 +7,7 @@
 /render_method (wireframe) def
 % the z scale is super messed up, so you can change this if you want but it will break
 % this constant should scale z to the same scale as the toher two axes
-/zMult 0.0016 def
+/zMult pi 180 div def
 
 
 % why is atan in postscript but not tan?
@@ -29,7 +31,6 @@
 } def
 
 % arbitrary amount of digits
-/pi 3.141592653 def
 
 /identity {
 	1 dict begin
@@ -134,7 +135,7 @@
 
 /cPos [0 0 .5] def
 % if any of cAngle are 0, things go very wrong
-/cAngle [0.001 0.001 135.001] def
+/cAngle [0 0 0] def
 /displaySurface [0.001 0.001 .5] def
 
 /perspective_rot_matrix {

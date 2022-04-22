@@ -12,9 +12,10 @@ module tube(p1, p2, s){
 }
 
 module shape(sz, sc, pos){
-    translate(pos)hull(){
-        for(e=[1:1:sides]){
-            translate([sin((360 / sides) * e) * sz, cos((360 / sides) * e) * sz, 0])sphere(sc);
+    translate(pos){
+        for(e=[1:2:sides]){
+            tube([sin((360 / sides) * e) * sz, cos((360 / sides) * e) * sz, 0]);
+            translate([sin((360 / sides) * (e + 1)) * sz, cos((360 / sides) * (e  + 1)) * sz, 0])sphere(sc);
         }
     }
 }

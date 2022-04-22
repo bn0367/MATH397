@@ -16,3 +16,5 @@ nbodyproblem/frames/*.eps
 *.cb2
 .*.lb
 *.synctex.gz
+
+frame*

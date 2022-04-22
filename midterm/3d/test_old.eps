@@ -2,12 +2,13 @@
 %%BoundingBox: 0 0 500 500
 % import 3d lib
 (3d_old.eps) run
+(utah_teapot.eps) run
 
 
 realtime srand
 
 /size 750 def
-/cycles 1080 def
+/cycles 100 def
 
 % disable back-face culling (because it doesn't work correctly yet)
 /enable_back_face_culling false def
@@ -94,62 +95,48 @@ cellsize 150 div setlinewidth
 % custom camera offsets for this example
 /cPosStart [0 0 0.5] def
 /cPos cPosStart def
-/cAngle [-0.05 0.001 135.001] def
+/cAngle [0 -135 0] def
 
 /cSpeed .5 def
 /circleSize 250 def
 
 /timeTaken 0 def
 
+/lWindow [200 {0} repeat] def
+/rWindow [200 {0} repeat] def
 
-/points cycles array def
+/shift {
+	2 dict begin
+	/arr exch def
+	/i exch def
+	[i arr aload pop pop]
+	end
+} def
+
+/f {
+	1 dict begin
+	/i exch def
+	i cos pi mul sin
+	end
+} def
+
 0 1 cycles {
 	/timeTaken realtime def
 	/theta exch 1 add def
-	/cPos [theta cSpeed mul cos circleSize mul cPosStart 0 get add theta cSpeed mul sin circleSize mul cPosStart 1 get add cPosStart 2 get] def
-	/cAngle [cAngle 0 get cAngle 1 get theta cSpeed mul 90 sub] def
-	%draw_axes
-	%0 1 0 setrgbcolor
-	%[200 200 100] 100 0 icosphere
-	%1 0 0 setrgbcolor
-	%/t theta 1 mul def
-	%/xt t sin 125 mul 25 sub def % t 1.6 24 t mul cos mul sub def
-	%/yt t cos 125 mul 25 sub def
-	%/z t 100 sub zMult mul 3 div def
-	%points theta 1 sub [xt yt z] put
-	%newpath
-	%points 0 get perspective_project moveto
-	%1 1 theta 1 sub {
-	%	/j exch def
-	%	points j get perspective_project lineto
-	%} for
-	%stroke
-	%[-25 -25 z zMult div 0.9 mul] 100 1 icosphere
-	%0 0 1 setrgbcolor
-	%[200 200 0] 300 2 icosphere
-	% [0 0 0] cellsize gridsize mul square
-	%223 255 div 187 255 div 177 255 div setrgbcolor [0 0 0] cellsize gridsize mul square
-	%0 1 gridsize 2 exp 1 sub {
-	%	/i exch def
-	%	/x i gridsize mod cellsize mul def
-	%	/y i gridsize idiv cellsize mul def
-	%	x y current i get cell
-	%} for
-	%theta 2 mod 1 eq {
-	%	0 1 gridsize 2 exp 1 sub {
-	%		/i exch def
-	%		% recalculate
-	%		old i get 0 eq {i dead}{i live} ifelse
-	%	} for
-	%	/old current [exch aload pop] def
-	%} if
-	% create a cube of size 10
-	[0 0 0] 100 cube_iso
 
-	stroke
+	/cAngle [cAngle 0 get cAngle 1 get theta cSpeed mul 90 sub] def
+
+	0 1 model length 1 sub {
+		/i exch def
+		/point model i get def
+		/point [point 0 get 100 mul point 1 get 100 mul point 2 get 100 mul zMult mul] def
+		point perspective_project 1 0 360 arc
+		stroke
+	} for
+
 	/timeTaken realtime timeTaken sub def
 	timeTaken 1000 div ==
 	copypage
 } for
 
-%EOF
+%EOF 
