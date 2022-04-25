@@ -1,0 +1,48 @@
+/script (+>+[<[->>>+<<<]>[->>>+<<<]>>[-<+<<+>>>]>[-<<+<+>>>]<<]) def % actual brainfuck code
+
+/ascii (                                 ! "#$%&\(\)*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~) def % ascii table for printing purposes
+
+/tape_length 20 def % length of tape/stack
+
+/max_depth 5 def % max nested loop depth
+
+/depth -1 def % current loop depth
+
+/loop_idxs [ max_depth { -1 } repeat ] def % index in script of loop start
+
+/tape [ tape_length { 0 } repeat ] def % the actual tape
+
+/tape_pointer 0 def % pointer to current cell in tape
+
+/script_pointer 0 def % pointer to current cell in script
+
+/step { % one step (i.e. one instruction)
+	tape_pointer ==
+	/ch script script_pointer 1 getinterval def
+	ch (+) eq { tape tape_pointer tape tape_pointer get 1 add put } if
+	ch (-) eq { tape tape_pointer tape tape_pointer get 1 sub put } if
+	ch (>) eq { tape_pointer 1 add tape_length lt { /tape_pointer tape_pointer 1 add def } if } if
+	ch (<) eq { tape_pointer 1 sub 0 ge { /tape_pointer tape_pointer 1 sub def } if } if
+	ch (.) eq { ascii tape tape_pointer get 1 getinterval ==} if
+	ch (]) eq { tape tape_pointer get 0 le { /depth depth 1 sub def } { depth -1 eq { exit } { /script_pointer loop_idxs depth get def } ifelse } ifelse } if
+	ch ([) eq { depth max_depth eq { exit }{
+		tape tape_pointer get 0 eq {
+			/minidepth 0 def
+			script_pointer 1 script length 1 sub {
+				/i exch def
+				/ch2 script i 1 getinterval def
+				ch2 ([) eq { /minidepth minidepth 1 add def } if
+				ch2 (]) eq { minidepth 0 eq { /script_pointer i def /depth depth 1 sub def depth == exit } { /minidepth minidepth 1 sub def } ifelse } if
+			} for
+		} {
+			/depth depth 1 add def
+			loop_idxs depth script_pointer put
+		} ifelse
+	 } ifelse } if
+
+	/script_pointer script_pointer 1 add def
+} def
+
+/run { % run until end of script
+	{ script_pointer script length ge { exit } { step } ifelse } loop
+} def
