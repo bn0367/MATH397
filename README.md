@@ -34,3 +34,13 @@
 - 2022-03-03: Lots of optimization on nbodyproblem (10x faster)
 - 2022-03-04 through 2022-03-11: Thinking of midterm ideas [notes](midterm/midterm_notes), nbodyproblem optimization, start of work on midterm
 - 2022-03-12 through 2022-03-18: More work on midterm (GOL fully working, langton's ant WIP) Fully (not really) featured 3d rendering!!
+- 2022-03-19 through 2022-03-25: Work on midterm paper, more game of life patterns ***note from future me: i did the 3d renderer here***
+- 2022-03-26 through 2022-04-01: Finalizing midterm paper, readding isometric view to 3d, work on changing perspective 3d to more like opengl with proper matrices
+- 2022-04-02 through 2022-04-08: Researching + attempting to implement opengl-like rendering
+- 2022-04-09 through 2022-04-15: More work on 3d renderer, attempt to get real 3d model imported, more work on GOL pattern importing, work on GOL "infinite" grid
+- 2022-04-16 through 2022-04-22: More work on 3d renderer (still opengl stuff)
+- 2022-04-23 through 2022-04-29: Implemented a brainf*** intepreter in postscript just for fun, no visualization (yet?)
+- 2022-04-30 through 2022-05-06: Refactor a large portion of the 3d renderer code, final brainstorming (navier-stokes?)
+- 2022-05-07 through 2022-05-13: Trying out audio stuff, markov chain maybe? Nothing works yet, also refactor GOL again
+- 2022-05-14 through 2022-05-18: More thinking about final, definitely fluid simuluation, still researching methods
+- 2022-05-23 through 2022-05-24/23: Work on final, decided on LBM instead of navier-stokes, working on cool visulization
