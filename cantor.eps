@@ -1,0 +1,41 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox: 0 0 500 500
+
+/it 10 def
+/size 500 def
+
+/lengths [2 4 7 13 24 44 81 149 274 504 927 1705 3136 5768 10609 19513 35890 66012 121415 223317 410744 755476 1389537 2555757 4700770 8646064 15902591 29249425 53798080 98950096 181997601 334745777 615693474 1132436852] def
+
+/points [[0 0] [size 0]] def
+
+/firstthird {
+	2 dict begin
+	/p1 exch def
+	/p2 exch def
+
+	[p1 0 get p2 0 get add 3 div p1 1 get p2 1 get add 3 div]
+	end
+} def
+/secondthird {
+	2 dict begin
+	/p1 exch def
+	/p2 exch def
+
+	[p1 0 get p2 0 get add .66 mul p1 1 get p2 1 get add .66 mul]
+	end
+} def
+
+0 1 it {
+	/j exch def
+	/newpoints lengths j 1 add get array def
+	0 1 points length 2 sub {
+		/i exch def
+		i ==
+		newpoints i 1 add 2 mul 1 sub points i get points i 1 add get i 2 mod 0 eq {firstthird}{secondthird} ifelse put
+	} for
+	newpoints 0 points 0 get put
+	newpoints newpoints length 1 sub points points length 1 sub get put
+	newpoints newpoints length 2 sub points points length 1 sub get points points length 2 sub get secondthird put
+	newpoints ==
+	/points newpoints def
+} for

@@ -1,138 +1,142 @@
 %!PS-Adobe-3.0 EPSF-3.0
 %%BoundingBox: 0 0 500 500
+
 % import 3d lib
 (3d_old.eps) run
-(utah_teapot.eps) run
-
 
 realtime srand
 
 /size 750 def
-/cycles 100 def
+/cycles 1000 def
 
 % disable back-face culling (because it doesn't work correctly yet)
 /enable_back_face_culling false def
 % full or wireframe (or both)
 /render_method (wireframe) def
 
-71 0 translate
+250 250 translate
+{
+	/gridsize 50 def
+	/cellsize size gridsize div def
+	cellsize 150 div setlinewidth
 
-/gridsize 50 def
-/cellsize size gridsize div def
-cellsize 150 div setlinewidth
+	% used for GOL: one is used to display, one is used to calculate because all the cells have to be updated at the same time
+	/old [
 
-% used for GOL: one is used to display, one is used to calculate because all the cells have to be updated at the same time
-/old [
-
-] def
-/current old [exch aload pop] def
-/heatmap [gridsize gridsize mul {0} repeat] def
-
-/getneighbors {
-	1 dict begin
-	/i exch def
-	end
-	/neighbors [
-		i 1 gridsize add sub i gridsize sub i 1 gridsize sub sub
-		i 1 sub                             i 1 add
-		i 1 gridsize add add i gridsize add i 1 gridsize sub add
 	] def
-	/l 0 def
-	0 1 7 {
-		/j exch def
-		/c neighbors j get def
-		/valid c 0 gt c gridsize gridsize mul lt and def
-		valid {
-			old c get 1 eq {/l l 1 add def} if
-		} if
-	} for
-	l
-} def
+	/current old [exch aload pop] def
+	/heatmap [gridsize gridsize mul {0} repeat] def
 
-/live {
-	1 dict begin
-	/i exch def end
-	/l i getneighbors def
+	/getneighbors {
+		1 dict begin
+		/i exch def
+		end
+		/neighbors [
+			i 1 gridsize add sub i gridsize sub i 1 gridsize sub sub
+			i 1 sub                             i 1 add
+			i 1 gridsize add add i gridsize add i 1 gridsize sub add
+		] def
+		/l 0 def
+		0 1 7 {
+			/j exch def
+			/c neighbors j get def
+			/valid c 0 gt c gridsize gridsize mul lt and def
+			valid {
+				old c get 1 eq {/l l 1 add def} if
+			} if
+		} for
+		l
+	} def
 
-	/x i gridsize mod cellsize mul def
-	/y i gridsize idiv cellsize mul def
-	l 2 ne l 3 ne and {current i 0 put} {current i 1 put } ifelse
-} def
+	/live {
+		1 dict begin
+		/i exch def end
+		/l i getneighbors def
 
-/dead {
-	1 dict begin
-	/i exch def	end
-	
-	/l i getneighbors def
+		/x i gridsize mod cellsize mul def
+		/y i gridsize idiv cellsize mul def
+		l 2 ne l 3 ne and {current i 0 put} {current i 1 put } ifelse
+	} def
 
-	/x i gridsize mod cellsize mul def
-	/y i gridsize idiv cellsize mul def
-	l 3 eq {current i 1 put} {current i 0 put} ifelse
-} def
-/cell {
-	3 dict begin
-	/state exch def
-	/y exch def
-	/x exch def
-	state 1 eq { 55 255 div 63 255 div 81 255 div setrgbcolor [x y 0] cellsize cube } if
-	end
-} def
+	/dead {
+		1 dict begin
+		/i exch def	end
+		
+		/l i getneighbors def
 
-/wipe {
-	/old_color [ currentrgbcolor ] def
-	newpath
-	size neg size neg moveto
-	size size neg lineto
-	size size lineto
-	size neg size lineto
-	closepath
-	1 1 1 setrgbcolor
-	fill
-	old_color aload setrgbcolor
-} def
+		/x i gridsize mod cellsize mul def
+		/y i gridsize idiv cellsize mul def
+		l 3 eq {current i 1 put} {current i 0 put} ifelse
+	} def
+	/cell {
+		3 dict begin
+		/state exch def
+		/y exch def
+		/x exch def
+		state 1 eq { 55 255 div 63 255 div 81 255 div setrgbcolor [x y 0] cellsize cube } if
+		end
+	} def
+
+	/wipe {
+		/old_color [ currentrgbcolor ] def
+		newpath
+		size neg size neg moveto
+		size size neg lineto
+		size size lineto
+		size neg size lineto
+		closepath
+		1 1 1 setrgbcolor
+		fill
+		old_color aload setrgbcolor
+	} def
+}
 
 
-% custom camera offsets for this example
 /cPosStart [0 0 0.5] def
 /cPos cPosStart def
-/cAngle [0 -135 0] def
+/cAngle [-0.05 0.001 135.001] def
 
 /cSpeed .5 def
 /circleSize 250 def
 
 /timeTaken 0 def
 
-/lWindow [200 {0} repeat] def
-/rWindow [200 {0} repeat] def
+{
+	/lWindow [200 {0} repeat] def
+	/rWindow [200 {0} repeat] def
 
-/shift {
-	2 dict begin
-	/arr exch def
-	/i exch def
-	[i arr aload pop pop]
-	end
-} def
+	/shift {
+		2 dict begin
+		/arr exch def
+		/i exch def
+		[i arr aload pop pop]
+		end
+	} def
 
-/f {
-	1 dict begin
-	/i exch def
-	i cos pi mul sin
-	end
-} def
+	/f {
+		1 dict begin
+		/i exch def
+		i cos pi mul sin
+		end
+	} def
+}
 
 0 1 cycles {
 	/timeTaken realtime def
 	/theta exch 1 add def
 
+	/cPos [theta cSpeed mul cos circleSize mul cPosStart 0 get add theta cSpeed mul sin circleSize mul cPosStart 1 get add cPosStart 2 get] def
 	/cAngle [cAngle 0 get cAngle 1 get theta cSpeed mul 90 sub] def
 
-	0 1 model length 1 sub {
-		/i exch def
-		/point model i get def
-		/point [point 0 get 100 mul point 1 get 100 mul point 2 get 100 mul zMult mul] def
-		point perspective_project 1 0 360 arc
-		stroke
-	} for
+	[0 0 0] 100 cube
+
+	%0 1 model length 1 sub {
+	%	/i exch def
+	%	/point model i get def
+	%	/point [point 0 get 100 mul point 1 get 100 mul point 2 get 100 mul zMult mul] def
+	%	point perspective_project 1 0 360 arc
+	%	stroke
+	%} for
 
 	/timeTaken realtime timeTaken sub def
 	timeTaken 1000 div ==

@@ -1,0 +1,90 @@
+/aadd {
+	2 dict begin
+	/s exch def
+	/arr exch def
+	0 1 arr length 1 sub {
+		/i exch def
+		arr i arr i get s add put
+	} for
+	arr
+	end
+} def
+
+/afunc {
+	3 dict begin
+	/s exch def
+	/f exch def
+	/arr exch def
+
+	0 1 arr length 1 sub {
+		/i exch def
+		arr i arr i get s f put
+	} for
+	arr
+	end
+} def
+
+/range {
+	1 dict begin
+	/max exch def
+	[0 1 max 1 sub {/i exch def i} for]
+	end
+} def
+
+/scalar {
+	2 dict begin
+	/s exch def
+	/arr exch def
+	0 1 arr length 1 sub {
+		/i exch def
+		arr i arr i get s mul put
+	} for
+	arr
+	end
+} def
+
+/scalar2d {
+	2 dict begin
+	/s exch def
+	/arr exch def
+	0 1 arr length 1 sub {
+		/i exch def
+		arr i arr i get s scalar put
+	} for
+	arr
+} def
+
+/md_arr {
+	2 dict begin
+	/func exch def
+	/shape exch def
+
+	/arr {[shape 0 get {func} repeat]} def
+	shape length 2 sub -1 0 {
+		/i exch def
+		/arr [shape i get {arr} repeat] def
+	} for
+	arr
+	end
+} def
+
+/zeroes { % zeroes with an e because numpy is wrong about this
+	1 dict begin
+	/shape exch def
+	shape {0} md_arr
+	end
+} def
+
+/ones {
+	1 dict begin
+	/shape exch def
+	shape {1} md_arr
+	end
+} def
+
+/rand_md {
+	1 dict begin
+	/shape exch def
+	shape {rand 100 mod 100 div} md_arr
+	end
+} def

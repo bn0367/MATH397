@@ -15,6 +15,14 @@ nbodyproblem/frames/*.eps
 *.cb
 *.cb2
 .*.lb
+*.mas
+*.pul
+*.res
+*.sav
+concorde
+music/files
+monster.jpg
 *.synctex.gz
+output.*
 
 frame*

@@ -1,0 +1,93 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%BoundingBox: 0 0 500 500
+
+(mat_methods.eps) run
+
+% D2Q9 LBM
+
+/na 9 def
+/D 2 def
+
+/c [[0 0] [1 0] [-1 0] [0 1] [0 -1] [1 1] [-1 -1] [1 -1] [-1 1]] def
+/ai [0 2 1 4 3 6 5 8 7] def
+
+/w0 4. 9. div def
+/w1 1. 9. div def
+/w2 1. 36. div def
+
+/w [0 w1 w1 w1 w1 w2 w2 w2 w2] def
+
+/dt 1 def
+/dx 1 def
+/S dx dt div def
+/c1 1. def
+/c2 3. S 2 exp div def
+/c3 9. 2. S 4 exp mul div def
+/c4 -3. 2. S 2 exp mul div def
+
+/nu_f 0.1 def
+/tau_f nu_f 3. mul S dt mul div 0.5 add def
+
+/stream_opt 1 def
+
+/nt 100 def
+/nx 8 def
+/nz 8 def
+
+/indexes [na nx nz mul] zeroes def
+
+
+0 1 na 1 sub {
+	/a exch def
+	/xArr nx range c a get 0 get neg aadd nx aadd {mod} nx afunc def
+	/zArr nz range c a get 1 get neg aadd nz aadd {mod} nz afunc def
+	/
+} for
+
+/f [na nz nx] zeroes def
+/f_stream [na nz nx] zeroes def
+/f_stream1 [na nz nx] zeroes def
+/f_stream2 [na nz nx] zeroes def
+/f_bounce [na nz nx] zeroes def
+/f_eq [na nz nx] zeroes def
+/Delta_f [na nz nx] zeroes def
+/solid [nz nx] zeroes def % bools
+/rho [nz nx] zeroes def
+/u [D nz nx] zeroes def
+/Pi [D nz nx] zeroes def
+/xx [nx] zeroes def
+/zz [nz] zeroes def
+/cu [nz nx] zeroes def
+
+% /rho [nz nx] {rand} md_arr def
+
+% /u2 [0 1 2] [0 1 2] [1 2] u u einsum def
+% einstein summation notation
+/einsum {
+	5 dict begin
+	/m1 exch def
+	/m2 exch def
+	/out_dims exch def
+	/in1_dims exch def
+	/in2_dims exch def
+
+	0 1 out_dims length 1 sub {
+		/i exch def
+		0 1 out_dims i get 1 sub {
+			
+		}
+	} for 
+	end
+} def
+
+/rho [nz nx] rand_md def
+
+0 1 na 1 sub {
+	/a exch def
+	f a rho w a get scalar2d put
+	% /cu [0] [0 1 2] [1 2] c a get u einsum def
+	0 1 D 1 sub {
+		/d exch def
+
+	} for
+} for

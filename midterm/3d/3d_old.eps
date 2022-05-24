@@ -7,7 +7,7 @@
 /render_method (wireframe) def
 % the z scale is super messed up, so you can change this if you want but it will break
 % this constant should scale z to the same scale as the toher two axes
-/zMult pi 180 div def
+/zMult pi 1800 div def
 
 
 % why is atan in postscript but not tan?
@@ -134,7 +134,6 @@
 } def
 
 /cPos [0 0 .5] def
-% if any of cAngle are 0, things go very wrong
 /cAngle [0 0 0] def
 /displaySurface [0.001 0.001 .5] def
 
@@ -283,7 +282,7 @@
 	newpath
 	points create_polygon
 	closepath
-	(both) render_method eq { gsave fill grestore stroke } { (full) render_method eq { fill }{ stroke } ifelse } ifelse
+	(both) render_method eq { 0 0 0 setrgbcolor gsave fill grestore .5 .5 .5 setrgbcolor stroke } { (full) render_method eq { fill }{ stroke } ifelse } ifelse
 	end
 } def
 
