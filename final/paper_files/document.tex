@@ -1,0 +1,49 @@
+\documentclass[12pt]{article}
+
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{accents}
+
+
+\usepackage{Bridges_LaTeX_Style}
+
+
+\title{Fluid Flow Visualization Using the Lattice Boltzmann Method}
+\author{Ben Newman}
+\begin{document}
+	\maketitle
+	\newpage
+	
+	\section{Overview}
+	For my  final project, I simulated and visualized fluid flow using the Lattice Boltzmann Method. The program takes  in no input, and will create frames to be converted to an animation given the initial conditions of the density (as explained in further detail below).
+	\section{Fluid Flow}
+	
+	\section{LBM}
+	The Lattice Boltzmann Method, or LBM, 
+	LBM is relatively simple, requiring only two steps, the collision step and  the streaming step.\\
+	The first, the collision step, is the Bhatnagar Gross and Krook model (1954):\\
+	$$
+	f_i(\overrightarrow{x},t+\delta_t)=f_i(\overrightarrow{x},t)+\frac{f_i^{eq}(\overrightarrow{x},t)-f_i(\overrightarrow{x},t)}{\tau_f}
+	$$
+	The second, the streaming step is simply:
+	$$
+	f_i(\overrightarrow{x}+\overrightarrow{e_i},t+\delta_i)=f_i(\overrightarrow{x},t)
+	$$
+	\section{Difficulties}
+	
+	\section{Results}
+	
+	\section{Next Steps}
+	My original goal for this project was to be able to implement it in Postscript, as I did my 3d renderer. Unfortunately,  I encountered a few difficulties along the way, and didn't get to complete this. I still hope to be able to, as Postscript provides a very convenient testbed for rendering. The main hurdle to overcome is the speed: even if I were to fully reimplement the python code in Postscript, I would not have access to numpy's very well optimized array operators, and would have to figure out  my own way of speeding simulation up.
+	\section{Appendix}
+	\begin{align*}
+		\text{I have adhered to the honor code in this assignment.}
+	\end{align*}\\
+	$\begin{aligned}
+		\text{{[1]} Bhat}&\text{nagar, P. L., et al. “A Model for Collision Processes in Gases. I. Small Amplitude}\\&\text{Processes in Charged and Neutral One-Component Systems.” Physical Review,}\\& \text{vol. 94, no. 3, 1954, pp. 511–525., https://doi.org/10.1103/physrev.94.511.} \\
+		{[2]} \text{afgd}&\text{fgsdfgsdfg}
+	\end{aligned}$\\
+	\text{The main python file used: \href{https://github.com/bn0367/MATH397/blob/main/final/main.py}{main.py}}
+
+	
+\end{document}

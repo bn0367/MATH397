@@ -8,8 +8,9 @@ P. Mora, G. Morra, D. A. Yuen, 2019, A concise Python implementation of the Latt
 import numpy as np
 import tqdm
 from PIL import Image
-import pyqtgraph as pg
 
+im = Image.open("monster.jpg")
+im = im.convert('L').resize((int(im.size[0] / 7), int(im.size[1] / 7)))
 
 na = 9
 c = np.array([[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]])  # Right to left
@@ -36,9 +37,9 @@ tau_f = nu_f * 3. / (S * dt) + 0.5
 
 stream_opt = 1  # vectorized
 
-nt = 10  # Number of time steps
-nx = 8  # X-axis size
-nz = 8  # Z-axis size
+nt = 500  # Number of time steps
+nx = im.size[0]  # X-axis size
+nz = im.size[1]  # Z-axis size
 
 # new indexes for the vectorized streaming calculations
 indexes = np.zeros((na, nx * nz), dtype=int)
@@ -71,9 +72,16 @@ frames = np.zeros((nt + 1, nz, nx))
 # Initialize the density and the number densities
 rho_0 = 1.0  # Density
 rho *= rho_0
+rho2 = np.zeros((nz, nx))
 for i in range(nz):
     for j in range(nx):
-        rho[i, j] = np.random.rand()
+        rho2[i, j] = np.random.rand()
+        rho[i, j] = im.getpixel((j, i))
+
+epsilon = 0.1
+
+rho /= 255
+rho[rho <= epsilon] += 2 * epsilon
 
 # Initialize the density, velocity and solid boolean
 # f[0:na] = 1
@@ -88,7 +96,7 @@ frames[0] = rho
 
 
 def tick(t):
-    global f, f_stream, f_stream1, f_stream2, f_bounce, f_eq, Delta_f, solid, rho, u, Pi, cu, u2, myimg
+    global f, f_stream, f_stream1, f_stream2, f_bounce, f_eq, Delta_f, solid, rho, u, Pi, cu, u2
     # periodic BC for f
     f[0:na, 0:nz, 0] = f[0:na, 0:nz, -2]
     f[0:na, 0:nz, -1] = f[0:na, 0:nz, 1]
@@ -116,6 +124,10 @@ def tick(t):
     #   Macroscopic properties
     rho = np.sum(f, axis=0)
     Pi = np.einsum('azx,ad->dzx', f, c)
+
+    #   Error checking
+    rho[rho <= epsilon] += 2 * epsilon
+
     u[0:D] = Pi[0:D] / rho
 
     #   Equilibrium distribution
@@ -142,11 +154,17 @@ def color_fader(col1, col2, mix=0.):  # fade (linear interpolate) from color c1 
 
 
 blue = np.array((0.17, 0.65, 0.89))
-green = np.array((0.17, 0.89, 0.65))
-
-np.meshgrid(xx, zz)
+white = np.array((1, 1, 1))
 
 for i in tqdm.tqdm(range(nt)):
     frame = frames[i]
-
-    pg.plot(frame)
+    fixed = np.array(frame, dtype=np.float32)
+    fixed[fixed < 0] = 0
+    fixed[fixed > 1] = 1
+    try:
+        fixed = np.abs(np.log(fixed)) * 10
+        fixed = np.array(fixed, dtype=np.uint8)
+    except Warning:
+        print("frame:", i)
+    image = Image.fromarray(fixed, 'L')
+    image.save('frames/frame_%03d.png' % i)
