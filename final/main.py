@@ -37,34 +37,33 @@ tau_f = nu_f * 3. / (S * dt) + 0.5
 
 stream_opt = 1  # vectorized
 
-nt = 500  # Number of time steps
-nx = im.size[0]  # X-axis size
-nz = im.size[1]  # Z-axis size
+nt = 100  # Number of time steps
+nx = 201  # X-axis size
+nz = 201  # Z-axis size
 
 # new indexes for the vectorized streaming calculations
 indexes = np.zeros((na, nx * nz), dtype=int)
-for a in range(na):
-    xArr = (np.arange(nx) - c[a][0] + nx) % nx
-    zArr = (np.arange(nz) - c[a][1] + nz) % nz
-    xInd, zInd = np.meshgrid(xArr, zArr)
-    indTotal = zInd * nx + xInd
-    indexes[a] = indTotal.reshape(nx * nz)
+xInds, zInds = [], []
+if stream_opt == 1:
+    for a in range(na):
+        xArr = (np.arange(nx) - c[a][0] + nx) % nx
+        zArr = (np.arange(nz) - c[a][1] + nz) % nz
+        xInd, zInd = np.meshgrid(xArr, zArr)
+        xInds.append(xInd.flatten())
+        zInds.append(zInd.flatten())
+        indTotal = zInd * nx + xInd
+        indexes[a] = indTotal.reshape(nx * nz)
 
 # Initialize arrays
 
 f = np.zeros((na, nz, nx))
 f_stream = np.zeros((na, nz, nx))
-f_stream1 = np.zeros((na, nz, nx))
-f_stream2 = np.zeros((na, nz, nx))
-f_bounce = np.zeros((na, nz, nx))
 f_eq = np.zeros((na, nz, nx))
 Delta_f = np.zeros((na, nz, nx))
 solid = np.zeros((nz, nx), dtype=bool)
 rho = np.ones((nz, nx))
 u = np.zeros((D, nz, nx))
 Pi = np.zeros((D, nz, nx))
-xx = np.arange(nx)
-zz = np.arange(nz)
 cu = np.zeros((nz, nx))
 
 frames = np.zeros((nt + 1, nz, nx))
@@ -73,15 +72,8 @@ frames = np.zeros((nt + 1, nz, nx))
 rho_0 = 1.0  # Density
 rho *= rho_0
 rho2 = np.zeros((nz, nx))
-for i in range(nz):
-    for j in range(nx):
-        rho2[i, j] = np.random.rand()
-        rho[i, j] = im.getpixel((j, i))
-
-epsilon = 0.1
-
-rho /= 255
-rho[rho <= epsilon] += 2 * epsilon
+np.random.seed(0)
+rho = np.random.rand(nz, nx)
 
 # Initialize the density, velocity and solid boolean
 # f[0:na] = 1
@@ -96,7 +88,7 @@ frames[0] = rho
 
 
 def tick(t):
-    global f, f_stream, f_stream1, f_stream2, f_bounce, f_eq, Delta_f, solid, rho, u, Pi, cu, u2
+    global f, f_stream, f_eq, Delta_f, solid, rho, u, Pi, cu, u2
     # periodic BC for f
     f[0:na, 0:nz, 0] = f[0:na, 0:nz, -2]
     f[0:na, 0:nz, -1] = f[0:na, 0:nz, 1]
@@ -113,10 +105,11 @@ def tick(t):
                     else:
                         f_stream[a][z][x] = f[a][z_za][x_xa]  # Streaming step
 
-    # correct but without BC
+    # correct but without BC (not anymore!)
     elif stream_opt == 1:
         for a in np.arange(na):
             f_new = f[a].reshape(nx * nz)[indexes[a]]
+            f_new[solid[zInds[a], xInds[a]]] = f[ai[a]][zInds[a], xInds[a]][solid[zInds[a], xInds[a]]]
             f_stream[a] = f_new.reshape(nz, nx)
 
     f = f_stream.copy()
@@ -124,16 +117,12 @@ def tick(t):
     #   Macroscopic properties
     rho = np.sum(f, axis=0)
     Pi = np.einsum('azx,ad->dzx', f, c)
-
-    #   Error checking
-    rho[rho <= epsilon] += 2 * epsilon
-
     u[0:D] = Pi[0:D] / rho
 
     #   Equilibrium distribution
-    u2 = u[0] * u[0] + u[1] * u[1]  # np.einsum('ijk,ijk->jk', u, u)#np.linalg.norm(u,axis=0)**2#
+    u2 = u[0] * u[0] + u[1] * u[1]
     for a in np.arange(na):
-        cu = c[a][0] * u[0] + c[a][1] * u[1]  # np.einsum('j,jkl->kl',c[a],u) #
+        cu = c[a][0] * u[0] + c[a][1] * u[1]
         f_eq[a] = rho * w[a] * (c1 + c2 * cu + c3 * cu ** 2 + c4 * u2)
 
     #   Collision term

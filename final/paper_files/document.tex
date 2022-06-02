@@ -3,47 +3,69 @@
 \usepackage{amsmath}
 \usepackage{hyperref}
 \usepackage{accents}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{float}
 
 
 \usepackage{Bridges_LaTeX_Style}
 
+\paragraphspace
 
 \title{Fluid Flow Visualization Using the Lattice Boltzmann Method}
 \author{Ben Newman}
 \begin{document}
 	\maketitle
+	\thispagestyle{empty}
 	\newpage
 	
 	\section{Overview}
-	For my  final project, I simulated and visualized fluid flow using the Lattice Boltzmann Method. The program takes  in no input, and will create frames to be converted to an animation given the initial conditions of the density (as explained in further detail below).
+	For my  final project, I simulated and visualized fluid flow using the Lattice Boltzmann Method. The program takes  in no input, and will create frames to be converted to an animation given the initial conditions of the density (as explained in further detail below). My code is based off of the code from Mora, Peter, et al., with some improvements to not only the visual output but to the underlying code itself, including a slightly different vectorized bounce-back boundary condition from the version outlined in the original paper.
 	\section{Fluid Flow}
-	
+	There are many different methods of simulating fluid flow. Most are based off of, in some part, the Navier-Stokes equations. Some methods involve just finding solutions to the Navier-Stokes equations directly -- these are very accurate, but not very fast, and require complex computations (and higher math than I've taken). The method that I've chosen instead is the Lattice Boltzmann Method, which is quite a bit simpler.
 	\section{LBM}
-	The Lattice Boltzmann Method, or LBM, 
-	LBM is relatively simple, requiring only two steps, the collision step and  the streaming step.\\
-	The first, the collision step, is the Bhatnagar Gross and Krook model (1954):\\
-	$$
-	f_i(\overrightarrow{x},t+\delta_t)=f_i(\overrightarrow{x},t)+\frac{f_i^{eq}(\overrightarrow{x},t)-f_i(\overrightarrow{x},t)}{\tau_f}
-	$$
-	The second, the streaming step is simply:
-	$$
-	f_i(\overrightarrow{x}+\overrightarrow{e_i},t+\delta_i)=f_i(\overrightarrow{x},t)
-	$$
+	The Lattice Boltzmann Method is based off of fluid densities on a lattice, rather than other methods that try to actually solve individual particle masses, momentum, and energy. This simplifies the calculations considerably, as there is no need for anything other than a simple grid.
+	The steps required to calculate fluid flow using the Lattice Boltzmann Method are fairly simple -- the following is the equation for "the number density of particles moving in the $\alpha$-direction," (Mora, 683) which is all that is required for the simulation:
+	\begin{gather*}f_\alpha(x+c_\alpha\Delta t,t+\Delta t)=f_\alpha(x,t)+\Delta f_\alpha^c(x,t)\\\text{where }\Delta f_\alpha^c(x,t)\text{ is approximated by the Bhatnagar Gross Krook method:}\\\Delta f_\alpha^c(x,t)=\left(\frac{1}{\tau_f}\right)(f_\alpha^{eq}(x,t)-f_\alpha(x,t))\\\text{and}\\\text{c is a list of the directions (N, S, E, W, NE, SE, NW, SW, and the origin), and } \\\alpha\text{ is a number that corresponds to one of those directions.}\\\Delta f_\alpha^c\text{ is the collision term (meaning the redistribution of densities due to collisions [Mora 684]).}\\f_\alpha^{eq}\text{ is the equilibrium density distribution}\\\tau_f\text{ is the relaxation time, and is calculated with }\tau_f=\frac{\nu_f}{(c_s^2\Delta t)}+0.5\text{ where }\nu_f\text{ is the kinematic viscosity.}\\x\text{ is the position, and }t\text{ is the time.}\end{gather*}\\The two parts of this equation, $f_\alpha$ and $\Delta f_\alpha^c$ are referred to as the streaming and collision steps respectively.
+	These equations can be trivially translated into python using numpy: \\
+	First, a set of indices is constructed corresponding to the (in this case) 9 directions from each start index. Once this set is constructed, the first (streaming) step is as simple as using numpy's reshape function: 
+	\texttt{f[a].reshape(nx * nz)[indexes[a]].reshape(nz, nz)}. \\
+	The second (collision) step is similarly simple: \texttt{f += (f\_eq - f) / tau\_f} since numpy provides arithmetic operators that work on arrays.\\Of course, there are many other intermediate operations described in the source paper as well as the linked code, but these are the main portions of the program.
 	\section{Difficulties}
-	
+	I had quite a few difficulties throughout this project. In the beginning, I was planning to do simulations by just calculating solutions to the Navier-Stokes equations, but that proved to be outside of my skill range, so I switched to LBM.\\I then had quite a few problems with execution time, as I hadn't realized how large of a speed up vectorization with numpy could be. The next problem wasn't with the calculations themselves -- it was with actually displaying my results. The original code used matplotlib to display each timestep, but attempting to do this for large amounts of timesteps resulted in matplotlib taking longer than the actual calculations to render. \\Additionally, when I was first attempting to put values from grayscale images into the initial density conditions, there were certain values (probably 0 or numbers <1e-10) that would cause a cascade of zeroes throughout the entire grid, resulting in unusable results. I attempted to remove the zeroes and small values, but haven't been successful yet.
+
 	\section{Results}
-	
+	Following this there are a few examples of what my code produces -- it creates a frame for each time step.\\
+	\begin{figure}[H]%
+		\centering
+		\subfloat[\centering frame 37]{{\includegraphics[width=5cm]{images/frame_036} }}%
+		\qquad
+		\subfloat[\centering frame 99]{{\includegraphics[width=5cm]{images/frame_099} }}%
+		\caption{Two frames from a simple 101x101 simulation with randomized starting densities}%
+		\label{fig:onezeroone}
+	\end{figure}%
+	\begin{figure}[H]%
+		\centering
+		\subfloat[\centering frame 2]{{\includegraphics[width=5cm]{images/frame_002} }}%
+		\qquad
+		\subfloat[\centering frame 98]{{\includegraphics[width=5cm]{images/frame_098} }}%
+		\caption{Same as above, but 1001x1001}%
+		\label{fig:onezerozeroone}
+	\end{figure}%
 	\section{Next Steps}
-	My original goal for this project was to be able to implement it in Postscript, as I did my 3d renderer. Unfortunately,  I encountered a few difficulties along the way, and didn't get to complete this. I still hope to be able to, as Postscript provides a very convenient testbed for rendering. The main hurdle to overcome is the speed: even if I were to fully reimplement the python code in Postscript, I would not have access to numpy's very well optimized array operators, and would have to figure out  my own way of speeding simulation up.
+	My original goal for this project was to be able to implement it in Postscript, as I did my 3d renderer. Unfortunately,  I encountered a few difficulties along the way, and didn't get to complete this. I still hope to be able to, as Postscript provides a very convenient testbed for rendering. The main hurdle to overcome is the speed: even if I were to fully reimplement the python code in Postscript, I would not have access to numpy's very well optimized array operators, and would have to figure out  my own way of speeding simulation up.\\I would also like to look into inputting images into the initial density conditions, as I did a little work on this but didn't get a chance to finish it up.\\I also would like to see if this could be transferred to 3d (and still display nicely), (e.g. D3Q15) instead of 2d D2Q9.
 	\section{Appendix}
 	\begin{align*}
 		\text{I have adhered to the honor code in this assignment.}
 	\end{align*}\\
 	$\begin{aligned}
 		\text{{[1]} Bhat}&\text{nagar, P. L., et al. “A Model for Collision Processes in Gases. I. Small Amplitude}\\&\text{Processes in Charged and Neutral One-Component Systems.” Physical Review,}\\& \text{vol. 94, no. 3, 1954, pp. 511–525., https://doi.org/10.1103/physrev.94.511.} \\
-		{[2]} \text{afgd}&\text{fgsdfgsdfg}
-	\end{aligned}$\\
-	\text{The main python file used: \href{https://github.com/bn0367/MATH397/blob/main/final/main.py}{main.py}}
+		{[2]}\text{ Mora}&\text{, Peter, et al. “A Concise Python Implementation of the Lattice Boltzmann Method}\\&\text{on HPC for Geo-Fluid Flow.” Geophysical Journal International,}\\&\text{ vol. 220, no. 1, 2019, pp. 682–702., https://doi.org/10.1093/gji/ggz423. }
+	\end{aligned}$\\\\
+	The main python file used: \href{https://github.com/bn0367/MATH397/blob/main/final/main.py}{main.py}\\
+	Additional results are available in the same github repository.
+	
 
 	
 \end{document}
