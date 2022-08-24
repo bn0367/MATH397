@@ -122,14 +122,14 @@ if not periodic_bc:
 def tick(t):
     global f, f_stream, f_eq, Delta_f, solid, rho, u, Pi, cu, u2, g, tau_g, g_eq
 
-    if is_animated:
+    if is_animated:  # update walls if input is animated
         solid[wall_frames[t % len(wall_frames) - 1] == 0] = False
         solid[wall_frames[t % len(wall_frames)] == 0] = True
 
     # streaming step
     for a in np.arange(na):
         f_new = f[a].reshape(nx * nz)[indexes[a]]
-        f_new[solid[zInds[a], xInds[a]]] = f[ai[a]][zInds[a], xInds[a]][solid[zInds[a], xInds[a]]]
+        f_new[solid[zInds[a], xInds[a]]] = f[ai[a]][zInds[a], xInds[a]][solid[zInds[a], xInds[a]]]  # account for walls
         f_stream[a] = f_new.reshape(nz, nx)
 
     f = f_stream.copy()
@@ -155,6 +155,17 @@ def tick(t):
 for i in tqdm.tqdm(range(nt)):
     tick(i)
 
+empty = (0, 0, 30)
+colored = (240, 100, 100)
+
+
+def lerp_colors(c1, c2, t):
+    c3 = []
+    for i in range(len(c1)):
+        c3.append(int(c1[i] * (1 - t) + c2[i] * t))
+    return tuple(c3)
+
+
 for i in tqdm.tqdm(range(nt)):
     frame = frames[i]
     fixed = np.array(frame, dtype=np.float32)
@@ -168,9 +179,16 @@ for i in tqdm.tqdm(range(nt)):
     try:
         fixed = np.abs(np.log(fixed)) * 10
         fixed = np.array(fixed, dtype=np.uint8)
+        colors = np.zeros((nz, nx, 3), dtype=np.uint8)
+        for y in range(len(fixed)):
+            for x in range(len(fixed[0])):
+                # calculate the color from empty and colored
+                color = lerp_colors(empty, colored, fixed[y][x] / 255)
+                colors[y][x] = color
     except Warning:
         print("frame:", i)
-    image = Image.fromarray(fixed, 'L')
+
+    image = Image.fromarray(colors)
     image.save('frames/frame_%03d.png' % i)
 
 os.system(".\\gif.bat %s" % input())
